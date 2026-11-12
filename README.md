@@ -2,7 +2,7 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> ✅ **Estado del proyecto:** ya se puede jugar una partida, consultar el resultado final y guardar el historial. El tablero adaptable, la animación 3D de los dados y los ajustes de accesibilidad están implementados; queda la validación integral de entrega.
+> ✅ **Estado del proyecto:** MVP validado. Se puede jugar una partida, consultar el resultado final, guardar el historial y usar el tablero adaptable con animaciones accesibles.
 
 ## 🚀 Desarrollo
 
@@ -16,9 +16,12 @@ npm run dev
 Abre en el navegador la dirección que muestra Vite. Otros comandos disponibles:
 
 ```bash
-npm test          # Ejecutar pruebas
-npm run build     # Comprobar tipos y generar la versión de producción
-npm run preview   # Previsualizar el build generado
+npm test                    # Ejecutar pruebas unitarias, de componentes e integración
+npm run build               # Comprobar tipos y generar la versión de producción
+npm run lint                # Revisar el código con ESLint
+npx playwright install chromium # Instalar Chromium para pruebas de navegador (una vez)
+npm run test:e2e            # Probar partidas completas en escritorio y móvil
+npm run preview             # Previsualizar el build generado
 ```
 
 ## 💾 Historial local
@@ -117,11 +120,16 @@ dice-game/
 ├── AGENTS.md             # Instrucciones para agentes
 ├── PLANNING.md           # Arquitectura y planificación
 ├── TASKS.md              # Tareas y criterios de aceptación
+├── eslint.config.js      # Reglas de lint
 ├── index.html            # Entrada HTML
 ├── package.json          # Dependencias y comandos
 ├── package-lock.json     # Versiones exactas de dependencias
+├── playwright.config.ts   # Configuración de pruebas de navegador
 ├── tsconfig.json         # Configuración de TypeScript
 ├── vite.config.ts        # Configuración de Vite y Vitest
+├── tests/
+│   └── e2e/
+│       └── game.spec.ts   # Flujos de victoria y eliminación en navegador
 └── src/
     ├── main.tsx          # Entrada de React
     ├── test-setup.ts     # Configuración de pruebas
@@ -132,17 +140,6 @@ dice-game/
     ├── features/setup/   # Configuración de jugadores y sus pruebas
     ├── persistence/      # Lectura, validación y guardado del historial
     └── styles/           # Estilos globales
-```
-
-### 🛠️ Estructura prevista adicional
-
-Las siguientes carpetas aún no existen. Se crearán progresivamente durante la implementación, únicamente cuando se necesiten:
-
-```text
-├── src/
-│   └── components/         # Componentes visuales compartidos
-└── tests/
-    └── e2e/                # Pruebas de flujos en el navegador
 ```
 
 Las pruebas unitarias y de componentes se ubican junto al código que prueban. La arquitectura y las tecnologías se detallan en [PLANNING.md](./PLANNING.md).

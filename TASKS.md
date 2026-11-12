@@ -145,7 +145,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T10 — Validación integral y entrega
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada.
 
 **Dependencias:** T03, T04, T05, T06, T07, T08 y T09.
 

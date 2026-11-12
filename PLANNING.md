@@ -19,9 +19,9 @@ Se completaron la inicialización, el modelo de reglas y sus pruebas, la configu
 | T07 — Construir la mesa de juego | ✅ Completada |
 | T08 — Mostrar victoria y resultados | ✅ Completada |
 | T09 — Adaptabilidad, animación y accesibilidad | ✅ Completada |
-| T10 — Validación integral y entrega | ⚪ No asignada |
+| T10 — Validación integral y entrega | ✅ Completada |
 
-El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. T03 y T09 están completadas; T10 es la tarea pendiente de validación integral.
+El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. Las tareas T01–T10 están completadas tras validar los flujos principales.
 
 ## Roles y responsabilidades
 
@@ -62,7 +62,7 @@ El detalle, las dependencias y el significado de cada estado están en [TASKS.md
 
 ## Tecnologías
 
-La aplicación está inicializada con React, TypeScript, Vite, Vitest y Testing Library. Para completar el MVP se utiliza o propone:
+La aplicación utiliza React, TypeScript, Vite, Vitest, Testing Library, ESLint y Playwright:
 
 - **React + TypeScript + Vite** para la SPA y el flujo de desarrollo/build.
 - **CSS estándar** con variables CSS y media queries; no añadir una biblioteca visual salvo que una necesidad concreta lo justifique.
@@ -70,7 +70,7 @@ La aplicación está inicializada con React, TypeScript, Vite, Vitest y Testing 
 - **Playwright** para los flujos críticos de navegador y comprobaciones de viewport responsive.
 - **`localStorage`** como almacenamiento local de resúmenes de partidas, encapsulado detrás de un adaptador tipado y versionado.
 
-No se requiere backend ni paquete de gestión de estado para esta escala; React y un reducer/controlador de partida son suficientes. Las dependencias instaladas se registran en el lockfile; Playwright se incorporará cuando se implementen las pruebas de navegador.
+No se requiere backend ni paquete de gestión de estado para esta escala; React y un reducer/controlador de partida son suficientes. Las dependencias instaladas se registran en el lockfile.
 
 ## Arquitectura propuesta
 

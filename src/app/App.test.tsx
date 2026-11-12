@@ -109,6 +109,53 @@ describe('App', () => {
     expect(within(history).getAllByText('Ana: 0 puntos')).toHaveLength(2)
   })
 
+  it('integra ataques, eliminación, victoria e historial', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    render(<App />)
+    fireEvent.change(screen.getByLabelText(/Nombre del jugador 1/), { target: { value: 'Ana' } })
+    fireEvent.change(screen.getByLabelText(/Nombre del jugador 2/), { target: { value: 'Luis' } })
+    fireEvent.click(screen.getByRole('radio', { name: /Elegir manualmente/ }))
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Marcador por jugador' }), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+
+    function rollAndKeepAll() {
+      fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+      for (let number = 1; number <= 6; number++) {
+        fireEvent.click(screen.getByRole('button', { name: new RegExp(`^Dado ${number}:`) }))
+      }
+      fireEvent.click(screen.getByRole('button', { name: 'Apartar seleccionados' }))
+    }
+
+    rollAndKeepAll()
+    fireEvent.click(screen.getByRole('radio', { name: 'Siguiente: Luis' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar ataque' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
+
+    vi.mocked(Math.random).mockReturnValue(0.8)
+    rollAndKeepAll()
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
+
+    vi.mocked(Math.random).mockReturnValue(0.99)
+    rollAndKeepAll()
+    fireEvent.click(screen.getByRole('radio', { name: 'Siguiente: Luis' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar ataque' }))
+
+    expect(screen.getByRole('status')).toHaveTextContent('Ganador: Ana')
+    expect(screen.getByText(/Luis queda eliminado/)).toBeInTheDocument()
+    expect(loadHistory()).toMatchObject([{
+      winnerId: 'player-1',
+      turnCount: 3,
+      players: [
+        { name: 'Ana', score: 10 },
+        { name: 'Luis', score: 0 },
+      ],
+    }])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva partida' }))
+    expect(screen.getByRole('region', { name: 'Historial' })).toHaveTextContent('Ganador: Ana')
+    expect(screen.getByRole('region', { name: 'Historial' })).toHaveTextContent('Luis: 0 puntos')
+  })
+
   it('informa de un historial corrupto sin impedir configurar una partida', () => {
     localStorage.setItem(HISTORY_KEY, '{')
     render(<App />)
