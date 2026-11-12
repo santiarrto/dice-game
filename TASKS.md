@@ -28,7 +28,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T02 — Modelar las reglas del juego
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada.
 
 **Dependencias:** T01.
 
@@ -70,9 +70,9 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T05 — Crear la bienvenida y configuración
 
-**Estado:** ⚪ No asignada.
+**Estado:** 🔴 Bloqueada. La configuración ya prepara una partida, pero falta mostrar el historial; se necesita completar T04.
 
-**Dependencias:** T01.
+**Dependencias:** T01 para iniciar; T04 para completar la sección de historial.
 
 - Permitir elegir entre 2 y 8 jugadores.
 - Mostrar un campo para el nombre de cada participante; ofrecer nombres predeterminados y normalizar entradas vacías.

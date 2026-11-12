@@ -2,7 +2,7 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> 🚧 **Estado del proyecto:** existe una pantalla inicial, pero la configuración de jugadores y el juego todavía están pendientes.
+> 🚧 **Estado del proyecto:** se pueden configurar los jugadores y preparar una partida. El tablero de juego y el historial todavía están pendientes.
 
 ## 🚀 Desarrollo
 
@@ -117,7 +117,9 @@ dice-game/
 └── src/
     ├── main.tsx          # Entrada de React
     ├── test-setup.ts     # Configuración de pruebas
-    ├── app/              # Pantalla inicial y su prueba
+    ├── app/              # Composición de la aplicación y su prueba
+    ├── domain/           # Reglas y pruebas del juego
+    ├── features/setup/   # Configuración de jugadores y sus pruebas
     └── styles/           # Estilos globales
 ```
 
@@ -127,9 +129,7 @@ Las siguientes carpetas aún no existen. Se crearán progresivamente durante la 
 
 ```text
 ├── src/
-│   ├── domain/             # Modelos y reglas puras del juego
 │   ├── features/
-│   │   ├── setup/          # Configuración de la partida
 │   │   ├── game/           # Estado, tablero y flujo de la partida
 │   │   └── history/        # Presentación del historial de resultados
 │   ├── components/         # Componentes visuales compartidos

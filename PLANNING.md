@@ -6,22 +6,22 @@ Crear una aplicación web en español para jugar al juego de dados en navegadore
 
 ## Estado actual del proyecto
 
-Se completó la inicialización de la aplicación: hay una pantalla inicial, configuración de pruebas y build. El juego y la configuración de jugadores aún no están implementados.
+Se completaron la inicialización de la aplicación y el modelo de reglas. La configuración de jugadores ya prepara una partida, pero su historial depende de T04; la interfaz de partida aún no está implementada.
 
 | Tarea | Estado |
 |---|---|
 | T01 — Inicializar la aplicación | ✅ Completada |
-| T02 — Modelar las reglas del juego | ⚪ No asignada |
+| T02 — Modelar las reglas del juego | ✅ Completada |
 | T03 — Probar reglas y casos límite | ⚪ No asignada |
 | T04 — Implementar historial local | ⚪ No asignada |
-| T05 — Crear la bienvenida y configuración | ⚪ No asignada |
+| T05 — Crear la bienvenida y configuración | 🔴 Bloqueada por T04 (historial) |
 | T06 — Implementar el flujo y estado de partida | ⚪ No asignada |
 | T07 — Construir la mesa de juego | ⚪ No asignada |
 | T08 — Mostrar victoria y resultados | ⚪ No asignada |
 | T09 — Adaptabilidad, animación y accesibilidad | ⚪ No asignada |
 | T10 — Validación integral y entrega | ⚪ No asignada |
 
-El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. T02 y T05 pueden iniciarse a partir de T01.
+El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. T03 y T04 ya pueden iniciarse; T05 se completará después de T04.
 
 ## Roles y responsabilidades
 
@@ -119,6 +119,7 @@ flowchart LR
   T02 --> T03
   T02 --> T04
   T02 --> T06
+  T04 --> T05
   T05 --> T06
   T06 --> T07
   T04 --> T08
@@ -138,7 +139,7 @@ flowchart LR
 
 Lectura de dependencias:
 
-- T02 y T05 requieren el andamiaje de T01, pero se pueden desarrollar en paralelo.
+- T02 y la configuración inicial de T05 requieren el andamiaje de T01 y pueden desarrollarse en paralelo; T05 necesita T04 para completar el historial.
 - T03 y T04 requieren el modelo/reglas de T02.
 - T06 integra reglas y configuración (T02 y T05); T07 construye la interfaz sobre el flujo de T06.
 - T08 requiere historial (T04), estado de partida (T06) y mesa de juego (T07).
