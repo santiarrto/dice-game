@@ -56,7 +56,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T04 — Implementar historial local
 
-**Estado:** ✅ Completada. El guardado automático al finalizar una partida se conectará en T08.
+**Estado:** ✅ Completada. El guardado automático al finalizar una partida se conectó en T08.
 
 **Dependencias:** T02.
 
@@ -100,7 +100,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T07 — Construir la mesa de juego
 
-**Estado:** ✅ Completada. La pantalla final con guardado se implementará en T08 y la animación 3D en T09.
+**Estado:** ✅ Completada. La pantalla final con guardado se completó en T08; la animación 3D corresponde a T09.
 
 **Dependencias:** T06.
 
@@ -115,7 +115,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T08 — Mostrar victoria y resultados
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada.
 
 **Dependencias:** T04, T06 y T07.
 

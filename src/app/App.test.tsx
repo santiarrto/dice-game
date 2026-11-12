@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { HISTORY_KEY, saveHistory } from '../persistence/history'
+import { HISTORY_KEY, loadHistory, saveHistory } from '../persistence/history'
 import { App } from './App'
 
 const completedGame = {
@@ -69,6 +70,43 @@ describe('App', () => {
     saveHistory(completedGame)
     fireEvent.click(screen.getByRole('button', { name: 'Volver a configurar' }))
     expect(screen.getByText('Ana: 7 puntos')).toBeInTheDocument()
+  })
+
+  it('guarda cada victoria una vez, muestra el historial y reinicia la partida', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const writes = vi.spyOn(Storage.prototype, 'setItem')
+    const { unmount } = render(<StrictMode><App /></StrictMode>)
+    fireEvent.change(screen.getByLabelText(/Nombre del jugador 1/), { target: { value: 'Ana' } })
+    fireEvent.change(screen.getByLabelText(/Nombre del jugador 2/), { target: { value: 'Luis' } })
+    fireEvent.click(screen.getByRole('radio', { name: /Elegir manualmente/ }))
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Marcador por jugador' }), { target: { value: '10' } })
+
+    function finishGame() {
+      fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+      expect(screen.getByText(/Lanzamiento:/)).toHaveTextContent('0 de 5')
+      expect(screen.getByText(/Juega:/)).toHaveTextContent('Ana')
+      fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+      expect(writes).toHaveBeenCalledTimes(loadHistory().length)
+      for (let die = 1; die <= 6; die++) {
+        fireEvent.click(screen.getByRole('button', { name: new RegExp(`^Dado ${die}:`) }))
+      }
+      fireEvent.click(screen.getByRole('button', { name: 'Apartar seleccionados' }))
+      expect(screen.getByRole('status')).toHaveTextContent('Ganador: Luis')
+      fireEvent.click(screen.getByRole('button', { name: 'Nueva partida' }))
+    }
+
+    finishGame()
+    expect(writes).toHaveBeenCalledTimes(1)
+    expect(within(screen.getByRole('region', { name: 'Historial' })).getByText('Luis: 10 puntos')).toBeInTheDocument()
+    finishGame()
+    expect(writes).toHaveBeenCalledTimes(2)
+    expect(new Set(loadHistory().map((match) => match.id)).size).toBe(2)
+
+    unmount()
+    render(<App />)
+    const history = screen.getByRole('region', { name: 'Historial' })
+    expect(within(history).getAllByText('Luis: 10 puntos')).toHaveLength(2)
+    expect(within(history).getAllByText('Ana: 0 puntos')).toHaveLength(2)
   })
 
   it('informa de un historial corrupto sin impedir configurar una partida', () => {

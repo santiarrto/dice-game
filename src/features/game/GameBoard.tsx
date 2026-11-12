@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { selectedTotal, type Direction, type Game, type Player } from '../../domain/game'
+import { selectedTotal, type Direction, type Game, type GameSummary, type Player } from '../../domain/game'
+import { HistoryError, saveHistory } from '../../persistence/history'
 import {
   advanceTurn,
   attackTargets,
@@ -53,6 +54,7 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
   const [lastRoll, setLastRoll] = useState<number[]>([])
   const [attackDirection, setAttackDirection] = useState<Direction | null>(null)
   const [confirmExit, setConfirmExit] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const { turn, players, currentPlayerId, lastPlayerId } = flow.game
   const current = playerById(players, currentPlayerId)
@@ -68,14 +70,34 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
     ? flow.game.turnCount
     : flow.game.turnCount + 1
 
+  function updateFlow(next: GameFlow) {
+    if (next.phase === 'finished') {
+      const summary: GameSummary = {
+        id: Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join(''),
+        finishedAt: new Date().toISOString(),
+        initialScore: next.game.initialScore,
+        players: next.game.players,
+        winnerId: next.winnerId,
+        turnCount: next.game.turnCount,
+      }
+      try {
+        saveHistory(summary)
+      } catch (error) {
+        if (!(error instanceof HistoryError)) throw error
+        setSaveError(error.message)
+      }
+    }
+    setFlow(next)
+  }
+
   function roll() {
     setLastRoll(turn.dice.filter((die) => !die.locked).map((die) => die.id))
     setSelection([])
-    setFlow(rollGameDice(flow))
+    updateFlow(rollGameDice(flow))
   }
 
   function keepSelected() {
-    setFlow(selectGameDice(flow, selection))
+    updateFlow(selectGameDice(flow, selection))
     setSelection([])
   }
 
@@ -87,11 +109,44 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
   }
 
   function requestExit() {
-    if (flow.phase === 'finished' || (flow.game.turnCount === 0 && turn.rollCount === 0)) {
+    if (flow.game.turnCount === 0 && turn.rollCount === 0) {
       onReturn()
     } else {
       setConfirmExit(true)
     }
+  }
+
+  if (flow.phase === 'finished') {
+    return (
+      <section className="game-panel game-summary" aria-labelledby="summary-heading">
+        <p className="section-kicker">Partida terminada</p>
+        <h2 id="summary-heading">¡Felicidades!</h2>
+        <p className="game-winner" role="status">🏆 Ganador: {playerById(players, flow.winnerId).name}</p>
+        <p>{turnMessage(flow)}</p>
+        <p>Marcador inicial: <strong>{flow.game.initialScore} puntos</strong></p>
+        <p>Turnos jugados: <strong>{flow.game.turnCount}</strong></p>
+        <h3>Orden de juego y marcadores finales</h3>
+        <ol className="scoreboard">
+          {players.map((player) => (
+            <li className="scoreboard__player" key={player.id}>
+              <div className="scoreboard__name">
+                <strong>{player.name}</strong>
+                <span>{player.score} puntos</span>
+              </div>
+              <div className="scoreboard__tags">
+                <span>{player.id === flow.winnerId ? 'Ganador' : 'Eliminado'}</span>
+              </div>
+            </li>
+          ))}
+        </ol>
+        {saveError ? (
+          <p role="alert">{saveError} El resultado no se guardó en el historial.</p>
+        ) : (
+          <p>Resultado guardado en el historial de este navegador.</p>
+        )}
+        <button className="start-button" onClick={onReturn} type="button">Nueva partida</button>
+      </section>
+    )
   }
 
   return (
@@ -99,7 +154,7 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
       <section className="game-panel" aria-labelledby="game-heading">
         <p className="section-kicker">Turno {turnNumber}</p>
         <h2 id="game-heading">Mesa de juego</h2>
-        <p className="game-current">{flow.phase === 'finished' ? 'Último turno:' : 'Juega:'} <strong>{current.name}</strong></p>
+        <p className="game-current">Juega: <strong>{current.name}</strong></p>
         <p>Lanzamiento: <strong>{turn.rollCount} de 5</strong></p>
 
         <div className="game-dice" role="group" aria-label="Dados">
@@ -163,7 +218,7 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
               disabled={attackDirection === null}
               onClick={() => {
                 if (attackDirection === null) throw new Error('Selecciona el objetivo del ataque.')
-                setFlow(chooseAttack(flow, attackDirection))
+                updateFlow(chooseAttack(flow, attackDirection))
               }}
               type="button"
             >
@@ -174,13 +229,6 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
         {flow.phase === 'turn-complete' && (
           <button className="start-button" onClick={advance} type="button">Siguiente turno</button>
         )}
-        {flow.phase === 'finished' && (
-          <div>
-            <p className="game-winner" role="status">🏆 Ganador: {playerById(players, flow.winnerId).name}</p>
-            <p>El resumen y el guardado de esta partida aún no están disponibles.</p>
-          </div>
-        )}
-
         <div className="game-exit">
           {confirmExit ? (
             <div role="group" aria-label="Confirmar salida">
@@ -207,7 +255,7 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
                 <span>{player.score} puntos</span>
               </div>
               <div className="scoreboard__tags">
-                {flow.phase !== 'finished' && player.id === currentPlayerId && <span>Actual</span>}
+                {player.id === currentPlayerId && <span>Actual</span>}
                 {player.id === upcoming?.id && <span>Siguiente</span>}
                 {player.id === lastPlayerId && <span>Último en jugar</span>}
                 {player.score === 0 && <span>Eliminado</span>}
