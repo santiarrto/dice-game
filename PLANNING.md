@@ -2,11 +2,11 @@
 
 ## Propósito
 
-Crear una aplicación web en español para jugar al juego de dados en navegadores de escritorio y móviles. La experiencia cubre configuración, partida animada, eliminación de jugadores, victoria e historial local de partidas.
+Crear una aplicación web en español para jugar al juego de dados en navegadores de escritorio y móviles. El MVP cubre configuración, partida animada, eliminación, victoria e historial local. La siguiente etapa incorpora identidad visual mediante avatares de jugador.
 
 ## Estado actual del proyecto
 
-Se completaron la inicialización, el modelo de reglas y sus pruebas, la configuración de jugadores, el historial local, el controlador, la mesa de partida, la pantalla final con guardado automático y la adaptabilidad, animación y accesibilidad de T09.
+El MVP está completo y validado. La Etapa 2 está planificada, pero su implementación aún no ha comenzado. El plan y tareas originales del MVP se conservaron en [docs/PLANNING-MVP.md](./docs/PLANNING-MVP.md) y [docs/TASKS-MVP.md](./docs/TASKS-MVP.md).
 
 | Tarea | Estado |
 |---|---|
@@ -20,8 +20,13 @@ Se completaron la inicialización, el modelo de reglas y sus pruebas, la configu
 | T08 — Mostrar victoria y resultados | ✅ Completada |
 | T09 — Adaptabilidad, animación y accesibilidad | ✅ Completada |
 | T10 — Validación integral y entrega | ✅ Completada |
+| T11 — Definir catálogo y modelo de avatares | ⚪ No asignada |
+| T12 — Elegir avatar en la configuración | ⚪ No asignada |
+| T13 — Persistir avatar en el historial | ⚪ No asignada |
+| T14 — Mostrar avatares durante y después de la partida | ⚪ No asignada |
+| T15 — Validar la experiencia de avatares | ⚪ No asignada |
 
-El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. Las tareas T01–T10 están completadas tras validar los flujos principales.
+El detalle y los criterios de aceptación están en [TASKS.md](./TASKS.md). Las tareas T01–T10 corresponden al MVP completado; T11–T15 componen la Etapa 2.
 
 ## Roles y responsabilidades
 
@@ -43,6 +48,29 @@ El detalle, las dependencias y el significado de cada estado están en [TASKS.md
 - Animación de lanzamiento orgánica con apariencia tridimensional y cambios de estado, respetando la preferencia de movimiento reducido.
 - Pantalla de victoria con ganador, resumen y acción para comenzar una nueva partida.
 - Consulta de las diez partidas terminadas más recientes, guardadas en el almacenamiento local del navegador.
+
+## Etapa 2 — Identidad visual de jugadores
+
+### Objetivo
+
+Permitir asignar a cada participante uno de los veinte avatares incluidos en `src/assets/player-icons/`, mantener la selección durante la partida y mostrarla en el tablero, el resultado final y el historial local.
+
+### Alcance y decisiones
+
+- Permitir elegir uno de los veinte avatares para cada participante durante la configuración y mostrarlo en la mesa, la victoria y el historial local.
+- Los avatares se identifican con IDs estables definidos en un catálogo tipado; los nombres de archivo no se construyen dinámicamente desde datos de usuario.
+- Se permiten avatares repetidos entre participantes.
+- `player1.jpg` es el avatar predeterminado para partidas nuevas y para registros antiguos que no incluyan avatar.
+- El resumen persistido guarda el ID del avatar, no la imagen codificada ni una URL remota.
+- Los datos actuales del historial (versión 1) se migran al leerlos; los registros existentes reciben el avatar predeterminado. Al guardarse, el historial usa el nuevo formato versionado.
+- Los archivos de imagen son recursos estáticos importados desde la aplicación. No se incluyen subidas de imágenes de usuarios, cuentas, backend ni sincronización en esta etapa.
+- La selección y sus estados deben ser operables con teclado, tener nombres accesibles y adaptarse a móvil.
+
+### Fuera de alcance de esta etapa
+
+- Elegir imágenes desde el dispositivo o recortarlas.
+- Cambiar reglas, marcador o flujo de turnos.
+- Sincronizar avatares o historial entre dispositivos.
 
 ### Fuera de alcance
 
@@ -80,6 +108,8 @@ La estructura completa, incluidos los archivos de documentación y el estado act
 src/
   index.html           documento de entrada de Vite
   main.tsx              entrada de React
+  assets/
+    player-icons/       catálogo de avatares locales
   app/                 composición de pantallas y navegación sencilla
   domain/              modelos y reglas puras de dados, turnos y marcadores
   features/
@@ -140,6 +170,12 @@ flowchart LR
   T07 --> T10
   T08 --> T10
   T09 --> T10
+  T10 --> T11
+  T11 --> T12
+  T11 --> T13
+  T12 --> T14
+  T13 --> T14
+  T14 --> T15
 ```
 
 Lectura de dependencias:
@@ -150,7 +186,12 @@ Lectura de dependencias:
 - T08 requiere historial (T04), estado de partida (T06) y mesa de juego (T07).
 - T09 ajusta las vistas principales (T05, T07, T08).
 - T10 valida el MVP completo y depende de las tareas anteriores enumeradas en `TASKS.md`.
+- T11 define los IDs y el valor predeterminado; T12 integra la selección, T13 amplía la persistencia, T14 presenta los avatares y T15 valida la etapa completa.
 
-## Criterio de entrega
+## Criterio de entrega del MVP
 
 El MVP está listo cuando las tareas T01–T10 cumplen sus criterios, las reglas coinciden con `README.md`, los flujos de configuración a victoria funcionan y el historial local puede consultarse sin que una falla de almacenamiento impida jugar.
+
+## Criterio de entrega de la Etapa 2
+
+La Etapa 2 estará lista cuando T11–T15 cumplan sus criterios, los avatares se mantengan correctamente en partidas nuevas e históricas y los flujos pasen las pruebas unitarias, de integración y navegador.

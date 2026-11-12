@@ -2,7 +2,7 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> ✅ **Estado del proyecto:** MVP validado. Se puede jugar una partida, consultar el resultado final, guardar el historial y usar el tablero adaptable con animaciones accesibles.
+> ✅ **Estado del proyecto:** MVP validado. La Etapa 2 está planificada: selección de avatares para los jugadores, integración en la partida e historial local.
 
 ## 🚀 Requisitos
 
@@ -135,6 +135,9 @@ dice-game/
 ├── AGENTS.md             # Instrucciones para agentes
 ├── PLANNING.md           # Arquitectura y planificación
 ├── TASKS.md              # Tareas y criterios de aceptación
+├── docs/
+│   ├── PLANNING-MVP.md   # Copia histórica de la planeación del MVP
+│   └── TASKS-MVP.md     # Copia histórica de las tareas del MVP
 ├── eslint.config.js      # Reglas de lint
 ├── package.json          # Dependencias y comandos
 ├── package-lock.json     # Versiones exactas de dependencias
@@ -148,6 +151,9 @@ dice-game/
     ├── index.html        # Entrada HTML de Vite
     ├── main.tsx          # Entrada de React
     ├── test-setup.ts     # Configuración de pruebas
+    ├── assets/
+    │   ├── icon.jpg
+    │   └── player-icons/ # Avatares para la Etapa 2
     ├── app/              # Composición de la aplicación y su prueba
     ├── domain/           # Reglas y pruebas del juego
     ├── features/game/    # Mesa, controlador de partida y sus pruebas

@@ -85,7 +85,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T06 — Implementar el flujo y estado de partida
 
-**Estado:** ✅ Completada. La interfaz del tablero se implementará en T07.
+**Estado:** ✅ Completada. La interfaz del tablero se completó en T07.
 
 **Dependencias:** T02 y T05.
 
@@ -155,3 +155,72 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 - Actualizar `README.md` con instalación, comandos, alcance y límites conocidos.
 
 **Aceptación:** los comandos documentados funcionan, los escenarios críticos pasan y no hay errores bloqueantes en consola durante los flujos principales.
+
+## Etapa 2 — Identidad visual de jugadores
+
+Las tareas T11–T15 amplían el MVP sin alterar las reglas del juego. Las decisiones de producto están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas.
+
+## T11 — Definir catálogo y modelo de avatares
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T10.
+
+- Crear un catálogo tipado de los veinte recursos de `src/assets/player-icons/` con IDs estables.
+- Añadir al modelo del jugador el ID de avatar y definir `player1` como predeterminado.
+- Resolver los IDs a recursos empaquetados sin generar rutas a partir de texto libre.
+- Permitir que distintos jugadores compartan un avatar.
+
+**Aceptación:** cada ID del catálogo corresponde a una imagen existente; tipos y valores inválidos se manejan de forma explícita y los jugadores existentes reciben el avatar predeterminado.
+
+## T12 — Elegir avatar en la configuración
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T11.
+
+- Permitir elegir uno de los avatares para cada participante durante la configuración.
+- Mostrar el avatar predeterminado inicialmente y conservar la selección al editar el orden o cantidad de jugadores.
+- Hacer que la galería sea operable con teclado y táctil, con etiquetas y estado seleccionado accesibles.
+- Mantener la selección repetida entre participantes.
+
+**Aceptación:** la partida comienza con el avatar elegido para cada participante; se puede completar la configuración solo con teclado y en un viewport móvil estrecho.
+
+## T13 — Persistir avatar en el historial
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T11.
+
+- Incluir el ID del avatar de cada jugador en el resumen de partida.
+- Versionar el formato del historial y migrar registros actuales de versión 1 asignándoles `player1`.
+- Mantener la validación del historial: las versiones incompatibles y los datos inválidos no deben sobrescribirse silenciosamente.
+- Conservar el límite actual de diez resultados recientes y el comportamiento de guardado único.
+
+**Aceptación:** una partida nueva conserva los IDs de avatar tras recargar; los registros de versión 1 siguen siendo legibles con el avatar predeterminado; los datos inválidos siguen mostrando un error recuperable.
+
+## T14 — Mostrar avatares durante y después de la partida
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T12 y T13.
+
+- Mostrar los avatares junto a los participantes en el tablero y en el resultado final.
+- Mostrar el avatar guardado en cada entrada del historial reciente.
+- Usar `player1` si un registro no tiene avatar o su ID no está disponible.
+- Mantener los nombres y estados de jugador visibles; el avatar es complementario y no sustituye etiquetas ni texto.
+
+**Aceptación:** el avatar correcto acompaña al jugador en configuración, partida, victoria e historial; la interfaz sigue siendo clara con imágenes fallidas, datos antiguos y movimiento reducido.
+
+## T15 — Validar la experiencia de avatares
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T12, T13 y T14.
+
+- Añadir pruebas unitarias para catálogo, valores predeterminados y migración del historial.
+- Añadir pruebas de integración para selección, inicio, victoria y consulta del resultado persistido.
+- Añadir o extender pruebas de navegador para escritorio y móvil, incluidos teclado y accesibilidad básica.
+- Ejecutar lint, suite de pruebas, pruebas de navegador y build; actualizar la documentación.
+
+**Aceptación:** todos los avatares y la migración pasan validaciones deterministas, la suite completa termina correctamente y no hay errores de consola en los flujos principales.
