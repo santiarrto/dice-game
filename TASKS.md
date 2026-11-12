@@ -2,7 +2,18 @@
 
 Las tareas están ordenadas por prerrequisitos, no necesariamente por el orden en que deben ejecutarse. Marca una tarea como completa cuando se cumplan todos sus criterios de aceptación y se hayan ejecutado las validaciones pertinentes.
 
+## Estados
+
+- ⚪ **No asignada:** la tarea aún no tiene responsable ni se ha iniciado.
+- 🔵 **En progreso:** hay una persona o agente trabajando en la tarea.
+- ✅ **Completada:** se cumplieron los criterios de aceptación y se realizaron las validaciones pertinentes.
+- 🔴 **Bloqueada:** no se puede continuar; indica la causa y qué se necesita para resolverla junto al estado.
+
+Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una tarea no asignada puede tener dependencias pendientes: compruébalas antes de comenzar.
+
 ## T01 — Inicializar la aplicación
+
+**Estado:** ✅ Completada.
 
 **Dependencias:** ninguna.
 
@@ -17,6 +28,8 @@ Las tareas están ordenadas por prerrequisitos, no necesariamente por el orden e
 
 ## T02 — Modelar las reglas del juego
 
+**Estado:** ⚪ No asignada.
+
 **Dependencias:** T01.
 
 - Definir tipos para partida, participante, dado, turno, orden de juego y resumen final.
@@ -28,6 +41,8 @@ Las tareas están ordenadas por prerrequisitos, no necesariamente por el orden e
 **Aceptación:** las reglas no dependen de componentes, estado del navegador ni `localStorage`; las entradas inválidas se rechazan de forma explícita.
 
 ## T03 — Probar reglas y casos límite
+
+**Estado:** ⚪ No asignada.
 
 **Dependencias:** T02.
 
@@ -41,6 +56,8 @@ Las tareas están ordenadas por prerrequisitos, no necesariamente por el orden e
 
 ## T04 — Implementar historial local
 
+**Estado:** ⚪ No asignada.
+
 **Dependencias:** T02.
 
 - Definir un formato versionado de resumen de partida con fecha, nombres, orden, marcador inicial, resultado final, ganador y datos breves de la partida.
@@ -52,6 +69,8 @@ Las tareas están ordenadas por prerrequisitos, no necesariamente por el orden e
 **Aceptación:** las partidas terminadas aparecen tras recargar el navegador; datos malformados no causan un fallo de la aplicación.
 
 ## T05 — Crear la bienvenida y configuración
+
+**Estado:** ⚪ No asignada.
 
 **Dependencias:** T01.
 
@@ -66,6 +85,8 @@ Las tareas están ordenadas por prerrequisitos, no necesariamente por el orden e
 
 ## T06 — Implementar el flujo y estado de partida
 
+**Estado:** ⚪ No asignada.
+
 **Dependencias:** T02 y T05.
 
 - Crear el controlador de estado de partida y las acciones para lanzar, apartar dados, resolver el turno, elegir dirección de ataque y avanzar.
@@ -78,6 +99,8 @@ Las tareas están ordenadas por prerrequisitos, no necesariamente por el orden e
 **Aceptación:** una partida completa puede jugarse a través del controlador sin depender de elementos visuales; las transiciones respetan las reglas.
 
 ## T07 — Construir la mesa de juego
+
+**Estado:** ⚪ No asignada.
 
 **Dependencias:** T06.
 
@@ -92,6 +115,8 @@ Las tareas están ordenadas por prerrequisitos, no necesariamente por el orden e
 
 ## T08 — Mostrar victoria y resultados
 
+**Estado:** ⚪ No asignada.
+
 **Dependencias:** T04, T06 y T07.
 
 - Mostrar una ventana/pantalla de felicitaciones con el ganador.
@@ -104,6 +129,8 @@ Las tareas están ordenadas por prerrequisitos, no necesariamente por el orden e
 
 ## T09 — Adaptabilidad, animación y accesibilidad
 
+**Estado:** ⚪ No asignada.
+
 **Dependencias:** T05, T07 y T08.
 
 - Diseñar primero para móvil; adaptar la lista de jugadores y el tablero a tablet y escritorio sin perder información.
@@ -114,6 +141,8 @@ Las tareas están ordenadas por prerrequisitos, no necesariamente por el orden e
 **Aceptación:** las pantallas se pueden usar en un viewport móvil estrecho y con teclado; el modo de movimiento reducido elimina animaciones no esenciales.
 
 ## T10 — Validación integral y entrega
+
+**Estado:** ⚪ No asignada.
 
 **Dependencias:** T03, T04, T05, T06, T07, T08 y T09.
 

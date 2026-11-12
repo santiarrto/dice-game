@@ -4,6 +4,25 @@
 
 Crear una aplicación web en español para jugar al juego de dados en navegadores de escritorio y móviles. La experiencia cubre configuración, partida animada, eliminación de jugadores, victoria e historial local de partidas.
 
+## Estado actual del proyecto
+
+Se completó la inicialización de la aplicación: hay una pantalla inicial, configuración de pruebas y build. El juego y la configuración de jugadores aún no están implementados.
+
+| Tarea | Estado |
+|---|---|
+| T01 — Inicializar la aplicación | ✅ Completada |
+| T02 — Modelar las reglas del juego | ⚪ No asignada |
+| T03 — Probar reglas y casos límite | ⚪ No asignada |
+| T04 — Implementar historial local | ⚪ No asignada |
+| T05 — Crear la bienvenida y configuración | ⚪ No asignada |
+| T06 — Implementar el flujo y estado de partida | ⚪ No asignada |
+| T07 — Construir la mesa de juego | ⚪ No asignada |
+| T08 — Mostrar victoria y resultados | ⚪ No asignada |
+| T09 — Adaptabilidad, animación y accesibilidad | ⚪ No asignada |
+| T10 — Validación integral y entrega | ⚪ No asignada |
+
+El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. T02 y T05 pueden iniciarse a partir de T01.
+
 ## Roles y responsabilidades
 
 | Rol | Responsabilidades |
@@ -41,9 +60,9 @@ Crear una aplicación web en español para jugar al juego de dados en navegadore
 - La selección del objetivo de ataque se hace por dirección (siguiente o anterior), eligiendo al jugador activo más cercano en esa dirección.
 - Los dados y el sorteo del orden usan un generador inyectable en la lógica para que las pruebas no dependan del azar real.
 
-## Tecnologías recomendadas
+## Tecnologías
 
-El repositorio solo contiene documentación; no hay una aplicación ni dependencias existentes que deban preservarse. Para el MVP se propone:
+La aplicación está inicializada con React, TypeScript, Vite, Vitest y Testing Library. Para completar el MVP se utiliza o propone:
 
 - **React + TypeScript + Vite** para la SPA y el flujo de desarrollo/build.
 - **CSS estándar** con variables CSS y media queries; no añadir una biblioteca visual salvo que una necesidad concreta lo justifique.
@@ -51,7 +70,7 @@ El repositorio solo contiene documentación; no hay una aplicación ni dependenc
 - **Playwright** para los flujos críticos de navegador y comprobaciones de viewport responsive.
 - **`localStorage`** como almacenamiento local de resúmenes de partidas, encapsulado detrás de un adaptador tipado y versionado.
 
-No se requiere backend ni paquete de gestión de estado para esta escala; React y un reducer/controlador de partida son suficientes. Las versiones concretas de dependencias se eligen al crear el proyecto y se registran en el lockfile.
+No se requiere backend ni paquete de gestión de estado para esta escala; React y un reducer/controlador de partida son suficientes. Las dependencias instaladas se registran en el lockfile; Playwright se incorporará cuando se implementen las pruebas de navegador.
 
 ## Arquitectura propuesta
 

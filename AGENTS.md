@@ -9,7 +9,7 @@ Desarrollar una aplicación web responsive del juego de dados descrito en [READM
 1. Lee este archivo, [README.md](./README.md), [PLANNING.md](./PLANNING.md) y [TASKS.md](./TASKS.md).
 2. Usa `README.md` como fuente canónica de las reglas del juego. Si otra instrucción o una tarea parece contradecirlo, no cambies las reglas silenciosamente: plantea la discrepancia.
 3. Revisa el estado actual del repositorio y conserva los cambios de otras personas.
-4. Comprueba los comandos reales de `package.json` antes de ejecutar pruebas o builds. El proyecto aún no tiene código ni manifiesto de dependencias.
+4. Comprueba los comandos reales de `package.json` antes de ejecutar pruebas o builds.
 
 ## Alcance del agente
 
@@ -51,7 +51,7 @@ Desarrollar una aplicación web responsive del juego de dados descrito en [READM
 - Respeta `prefers-reduced-motion`; las animaciones nunca deben ser necesarias para entender el resultado o completar una acción.
 - Persiste solo resúmenes de partidas terminadas. No guardes nombres o resultados en servicios remotos.
 - Valida y versiona los datos leídos de `localStorage`; presenta un mensaje claro si el historial no puede leerse o guardarse.
-- Actualiza las tareas de [TASKS.md](./TASKS.md) cuando se complete o se redefina trabajo.
+- Actualiza los estados de [TASKS.md](./TASKS.md) y el resumen de [PLANNING.md](./PLANNING.md) al iniciar, bloquear, reanudar o completar trabajo.
 
 ## Validación de cambios
 

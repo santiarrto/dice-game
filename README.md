@@ -2,7 +2,24 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> 🚧 **Estado del proyecto:** la aplicación aún no está implementada. Por ahora el repositorio contiene las reglas y la planificación; todavía no hay comandos de instalación o ejecución disponibles.
+> 🚧 **Estado del proyecto:** existe una pantalla inicial, pero la configuración de jugadores y el juego todavía están pendientes.
+
+## 🚀 Desarrollo
+
+Se necesita Node.js 20.19 o posterior de la rama 20, o Node.js 22.12 o posterior, y npm. Desde la raíz del proyecto:
+
+```bash
+npm ci
+npm run dev
+```
+
+Abre en el navegador la dirección que muestra Vite. Otros comandos disponibles:
+
+```bash
+npm test          # Ejecutar pruebas
+npm run build     # Comprobar tipos y generar la versión de producción
+npm run preview   # Previsualizar el build generado
+```
 
 ## 🏁 Objetivo
 
@@ -84,42 +101,44 @@ La partida termina cuando solo queda una persona sin eliminar. Esa persona es la
 
 ## 🗂️ Estructura del proyecto
 
-Actualmente existen los siguientes archivos de documentación:
+Estructura actual (sin incluir dependencias instaladas ni el build generado):
 
 ```text
 dice-game/
-├── README.md      # Reglas y descripción general
-├── AGENTS.md      # Instrucciones y alcance para agentes
-├── PLANNING.md    # Arquitectura, tecnologías y planificación
-└── TASKS.md       # Tareas, dependencias y criterios de aceptación
+├── README.md             # Reglas y descripción general
+├── AGENTS.md             # Instrucciones para agentes
+├── PLANNING.md           # Arquitectura y planificación
+├── TASKS.md              # Tareas y criterios de aceptación
+├── index.html            # Entrada HTML
+├── package.json          # Dependencias y comandos
+├── package-lock.json     # Versiones exactas de dependencias
+├── tsconfig.json         # Configuración de TypeScript
+├── vite.config.ts        # Configuración de Vite y Vitest
+└── src/
+    ├── main.tsx          # Entrada de React
+    ├── test-setup.ts     # Configuración de pruebas
+    ├── app/              # Pantalla inicial y su prueba
+    └── styles/           # Estilos globales
 ```
 
-### 🛠️ Estructura prevista para la aplicación
+### 🛠️ Estructura prevista adicional
 
-Esta estructura es una guía, **no representa archivos ya creados**. Se desarrollará progresivamente durante la implementación, creando únicamente lo que se necesite:
+Las siguientes carpetas aún no existen. Se crearán progresivamente durante la implementación, únicamente cuando se necesiten:
 
 ```text
-dice-game/
-├── index.html              # Entrada HTML de Vite
-├── package.json            # Dependencias y comandos del proyecto
-├── tsconfig.json           # Configuración de TypeScript
-├── vite.config.ts          # Configuración de Vite
 ├── src/
-│   ├── main.tsx            # Punto de entrada de React
-│   ├── app/                # Composición y navegación de pantallas
 │   ├── domain/             # Modelos y reglas puras del juego
 │   ├── features/
 │   │   ├── setup/          # Configuración de la partida
 │   │   ├── game/           # Estado, tablero y flujo de la partida
 │   │   └── history/        # Presentación del historial de resultados
 │   ├── components/         # Componentes visuales compartidos
-│   ├── persistence/        # Acceso y validación del historial local
-│   └── styles/             # Estilos globales y diseño adaptable
+│   └── persistence/        # Acceso y validación del historial local
 └── tests/
     └── e2e/                # Pruebas de flujos en el navegador
 ```
 
-Las pruebas unitarias y de componentes se ubicarán junto al código que prueban. Los archivos de configuración adicionales y los nombres concretos de las pruebas se definirán al crear la aplicación. La arquitectura y las tecnologías propuestas se detallan en [PLANNING.md](./PLANNING.md).
+Las pruebas unitarias y de componentes se ubican junto al código que prueban. La arquitectura y las tecnologías se detallan en [PLANNING.md](./PLANNING.md).
 
 ## 📚 Documentación del proyecto
 
