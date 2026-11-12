@@ -78,6 +78,8 @@ La estructura completa, incluidos los archivos de documentación y el estado act
 
 ```text
 src/
+  index.html           documento de entrada de Vite
+  main.tsx              entrada de React
   app/                 composición de pantallas y navegación sencilla
   domain/              modelos y reglas puras de dados, turnos y marcadores
   features/

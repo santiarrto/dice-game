@@ -4,24 +4,39 @@ Juego de supervivencia para navegadores, pensado para jugar en una misma pantall
 
 > ✅ **Estado del proyecto:** MVP validado. Se puede jugar una partida, consultar el resultado final, guardar el historial y usar el tablero adaptable con animaciones accesibles.
 
-## 🚀 Desarrollo
+## 🚀 Requisitos
 
-Se necesita Node.js 20.19 o posterior de la rama 20, o Node.js 22.12 o posterior, y npm. Desde la raíz del proyecto:
+- Node.js **20.19 o posterior de la rama 20**, o **22.12 o posterior**.
+- npm, incluido con Node.js.
+- Un navegador web moderno en escritorio o dispositivo móvil.
+
+## ▶️ Instalación y ejecución
+
+Desde la carpeta raíz del proyecto, instala las dependencias y arranca el servidor de desarrollo:
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Abre en el navegador la dirección que muestra Vite. Otros comandos disponibles:
+Abre en el navegador la dirección local que muestra Vite en la terminal.
+
+Para generar y previsualizar la versión de producción:
+
+```bash
+npm run build
+npm run preview
+```
+
+## 🧪 Comprobaciones
+
+Comandos de validación disponibles desde la carpeta raíz:
 
 ```bash
 npm test                    # Ejecutar pruebas unitarias, de componentes e integración
-npm run build               # Comprobar tipos y generar la versión de producción
 npm run lint                # Revisar el código con ESLint
-npx playwright install chromium # Instalar Chromium para pruebas de navegador (una vez)
+npx playwright install chromium # Instalar Chromium para pruebas de navegador (solo la primera vez)
 npm run test:e2e            # Probar partidas completas en escritorio y móvil
-npm run preview             # Previsualizar el build generado
 ```
 
 ## 💾 Historial local
@@ -121,7 +136,6 @@ dice-game/
 ├── PLANNING.md           # Arquitectura y planificación
 ├── TASKS.md              # Tareas y criterios de aceptación
 ├── eslint.config.js      # Reglas de lint
-├── index.html            # Entrada HTML
 ├── package.json          # Dependencias y comandos
 ├── package-lock.json     # Versiones exactas de dependencias
 ├── playwright.config.ts   # Configuración de pruebas de navegador
@@ -131,6 +145,7 @@ dice-game/
 │   └── e2e/
 │       └── game.spec.ts   # Flujos de victoria y eliminación en navegador
 └── src/
+    ├── index.html        # Entrada HTML de Vite
     ├── main.tsx          # Entrada de React
     ├── test-setup.ts     # Configuración de pruebas
     ├── app/              # Composición de la aplicación y su prueba
@@ -149,3 +164,7 @@ Las pruebas unitarias y de componentes se ubican junto al código que prueban. L
 - [Instrucciones para agentes](./AGENTS.md)
 - [Planeación, alcance y arquitectura](./PLANNING.md)
 - [Tareas de desarrollo](./TASKS.md)
+
+## ✍️ Autoría
+
+Aplicación desarrollada por **Santiago Arredondo Torres**.
