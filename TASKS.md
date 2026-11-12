@@ -56,7 +56,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T04 — Implementar historial local
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. El guardado automático al finalizar una partida se conectará en T08.
 
 **Dependencias:** T02.
 
@@ -70,7 +70,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T05 — Crear la bienvenida y configuración
 
-**Estado:** 🔴 Bloqueada. La configuración ya prepara una partida, pero falta mostrar el historial; se necesita completar T04.
+**Estado:** ✅ Completada.
 
 **Dependencias:** T01 para iniciar; T04 para completar la sección de historial.
 
@@ -85,7 +85,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T06 — Implementar el flujo y estado de partida
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. La interfaz del tablero se implementará en T07.
 
 **Dependencias:** T02 y T05.
 
@@ -100,7 +100,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## T07 — Construir la mesa de juego
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. La pantalla final con guardado se implementará en T08 y la animación 3D en T09.
 
 **Dependencias:** T06.
 
@@ -134,11 +134,14 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 **Dependencias:** T05, T07 y T08.
 
 - Diseñar primero para móvil; adaptar la lista de jugadores y el tablero a tablet y escritorio sin perder información.
-- Añadir animación breve al lanzamiento y transiciones de marcador/eliminación, con una alternativa para `prefers-reduced-motion`.
+- Animar los dados lanzados con apariencia tridimensional y movimiento orgánico: giros, desplazamiento y desaceleración que sugieran un lanzamiento natural.
+- Mostrar al detenerse la cara correspondiente al valor generado por el controlador; no volver a animar ni alterar los dados apartados.
+- Mantener la animación fluida en celular y escritorio, sin impedir la lectura de los resultados ni afectar las reglas del juego.
+- Añadir transiciones de marcador/eliminación y una alternativa sin movimiento no esencial para `prefers-reduced-motion`, mostrando directamente los valores finales.
 - Añadir etiquetas accesibles, foco visible, navegación por teclado y anuncios de cambios importantes para tecnologías de asistencia.
 - Comprobar contraste, tamaño táctil y que los mensajes no dependan solo de iconos o color.
 
-**Aceptación:** las pantallas se pueden usar en un viewport móvil estrecho y con teclado; el modo de movimiento reducido elimina animaciones no esenciales.
+**Aceptación:** los lanzamientos se perciben naturales y con profundidad en móvil y escritorio; cada cara final coincide con el resultado del controlador y los dados apartados permanecen sin cambios. Las pantallas se pueden usar con teclado y en un viewport móvil estrecho; con movimiento reducido se muestran los resultados sin animaciones no esenciales.
 
 ## T10 — Validación integral y entrega
 

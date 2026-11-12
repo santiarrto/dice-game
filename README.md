@@ -2,7 +2,7 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> 🚧 **Estado del proyecto:** se pueden configurar los jugadores y preparar una partida. El tablero de juego y el historial todavía están pendientes.
+> 🚧 **Estado del proyecto:** ya se puede jugar una partida en la mesa y consultar el historial. La pantalla final con guardado automático y la animación 3D de los dados aún están pendientes.
 
 ## 🚀 Desarrollo
 
@@ -20,6 +20,14 @@ npm test          # Ejecutar pruebas
 npm run build     # Comprobar tipos y generar la versión de producción
 npm run preview   # Previsualizar el build generado
 ```
+
+## 💾 Historial local
+
+La bienvenida muestra hasta **10 partidas terminadas** guardadas en el navegador, con su ganador y marcadores finales. Los datos no se sincronizan entre dispositivos y pueden borrarse al limpiar el almacenamiento del navegador. La partida en curso no se guarda.
+
+El historial utiliza un formato versionado. Si los datos están dañados, la versión no es compatible o el almacenamiento no está disponible, se muestra un aviso y se puede seguir configurando una partida; los datos existentes no se sobrescriben.
+
+La integración que guardará el resultado al terminar una partida se implementará junto con la pantalla de victoria.
 
 ## 🏁 Objetivo
 
@@ -119,7 +127,10 @@ dice-game/
     ├── test-setup.ts     # Configuración de pruebas
     ├── app/              # Composición de la aplicación y su prueba
     ├── domain/           # Reglas y pruebas del juego
+    ├── features/game/    # Mesa, controlador de partida y sus pruebas
+    ├── features/history/ # Presentación del historial
     ├── features/setup/   # Configuración de jugadores y sus pruebas
+    ├── persistence/      # Lectura, validación y guardado del historial
     └── styles/           # Estilos globales
 ```
 
@@ -129,11 +140,7 @@ Las siguientes carpetas aún no existen. Se crearán progresivamente durante la 
 
 ```text
 ├── src/
-│   ├── features/
-│   │   ├── game/           # Estado, tablero y flujo de la partida
-│   │   └── history/        # Presentación del historial de resultados
-│   ├── components/         # Componentes visuales compartidos
-│   └── persistence/        # Acceso y validación del historial local
+│   └── components/         # Componentes visuales compartidos
 └── tests/
     └── e2e/                # Pruebas de flujos en el navegador
 ```

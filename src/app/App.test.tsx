@@ -1,6 +1,22 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { HISTORY_KEY, saveHistory } from '../persistence/history'
 import { App } from './App'
+
+const completedGame = {
+  id: 'partida-1',
+  finishedAt: '2026-01-01T10:00:00.000Z',
+  initialScore: 20,
+  players: [
+    { id: 'a', name: 'Ana', score: 7 },
+    { id: 'b', name: 'Luis', score: 0 },
+  ],
+  winnerId: 'a',
+  turnCount: 4,
+}
+
+beforeEach(() => localStorage.clear())
+afterEach(() => vi.restoreAllMocks())
 
 describe('App', () => {
   it('presenta la bienvenida y el formulario de configuración', () => {
@@ -22,15 +38,54 @@ describe('App', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
 
-    expect(screen.getByRole('heading', { name: 'Partida preparada' })).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('El tablero de juego aún está en desarrollo.')
-    expect(screen.getByText('Marcador inicial: 35 puntos por jugador.')).toBeInTheDocument()
-    expect(within(screen.getByRole('list')).getAllByRole('listitem').map((item) => item.textContent))
-      .toEqual(['Luis', 'Ana'])
+    expect(screen.getByRole('heading', { name: 'Mesa de juego' })).toBeInTheDocument()
+    expect(screen.getByText(/Juega:/)).toHaveTextContent('Luis')
+    const players = within(screen.getByRole('list')).getAllByRole('listitem')
+    expect(players[0]).toHaveTextContent('Luis')
+    expect(players[1]).toHaveTextContent('Ana')
+    expect(players[0]).toHaveTextContent('35 puntos')
 
     fireEvent.click(screen.getByRole('button', { name: 'Volver a configurar' }))
     expect(screen.getByRole('button', { name: 'Comenzar partida' })).toBeInTheDocument()
     expect(screen.getByLabelText(/Nombre del jugador 1/)).toHaveValue('Luis')
     expect(screen.getByRole('spinbutton', { name: 'Marcador por jugador' })).toHaveValue(35)
+  })
+
+  it('muestra en la bienvenida un resultado persistido al volver a cargar', () => {
+    saveHistory(completedGame)
+    const { unmount } = render(<App />)
+    unmount()
+    render(<App />)
+    const history = screen.getByRole('region', { name: 'Historial' })
+    expect(within(history).getByText('Ganador:').parentElement).toHaveTextContent('Ana')
+    expect(within(history).getByText('Ana: 7 puntos')).toBeInTheDocument()
+    expect(within(history).getByText('Luis: 0 puntos')).toBeInTheDocument()
+  })
+
+  it('actualiza el historial al regresar a la bienvenida', () => {
+    render(<App />)
+    expect(screen.getByText('Aún no hay partidas terminadas en este navegador.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+    saveHistory(completedGame)
+    fireEvent.click(screen.getByRole('button', { name: 'Volver a configurar' }))
+    expect(screen.getByText('Ana: 7 puntos')).toBeInTheDocument()
+  })
+
+  it('informa de un historial corrupto sin impedir configurar una partida', () => {
+    localStorage.setItem(HISTORY_KEY, '{')
+    render(<App />)
+    expect(screen.getByRole('alert')).toHaveTextContent('datos inválidos')
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+    expect(screen.getByRole('heading', { name: 'Mesa de juego' })).toBeInTheDocument()
+  })
+
+  it('permite configurar cuando el almacenamiento no está disponible', () => {
+    vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+      throw new DOMException('Denied', 'SecurityError')
+    })
+    render(<App />)
+    expect(screen.getByRole('alert')).toHaveTextContent('almacenamiento local no está disponible')
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+    expect(screen.getByRole('heading', { name: 'Mesa de juego' })).toBeInTheDocument()
   })
 })

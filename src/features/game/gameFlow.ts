@@ -1,0 +1,114 @@
+import {
+  applyOutcome,
+  calculateOutcome,
+  createTurn,
+  findNeighbor,
+  rollDice,
+  selectDice,
+  turnTotal,
+  winner,
+  type Direction,
+  type Game,
+  type Player,
+  type RandomSource,
+  type TurnOutcome,
+} from '../../domain/game'
+
+export interface TurnResult {
+  playerId: string
+  total: number
+  outcome: TurnOutcome
+  targetId: string | null
+  direction: Direction | null
+}
+
+export type GameFlow =
+  | { phase: 'playing'; game: Game }
+  | { phase: 'choose-target'; game: Game; total: number; points: number }
+  | { phase: 'turn-complete'; game: Game; result: TurnResult }
+  | { phase: 'finished'; game: Game; result: TurnResult; winnerId: string }
+
+export function startGame(game: Game): GameFlow {
+  const { players, turn, initialScore } = game
+  if (players.length < 2 || players.length > 8
+    || !Number.isInteger(initialScore) || initialScore < 10 || initialScore > 50
+    || new Set(players.map((player) => player.id)).size !== players.length
+    || players.some((player) => !player.id.trim() || !player.name.trim() || player.score !== initialScore)
+    || game.currentPlayerId !== players[0].id
+    || game.lastPlayerId !== null || game.turnCount !== 0
+    || turn.phase !== 'ready' || turn.rollCount !== 0 || turn.dice.length !== 6
+    || turn.dice.some((die, index) => die.id !== index || die.value !== null || die.locked)) {
+    throw new Error('La configuración inicial de la partida no es válida.')
+  }
+  return { phase: 'playing', game }
+}
+
+function finishTurn(game: Game, total: number, direction?: Direction): GameFlow {
+  const { players, outcome, targetId } = applyOutcome(game.players, game.currentPlayerId, total, direction)
+  const updatedGame: Game = {
+    ...game,
+    players,
+    lastPlayerId: game.currentPlayerId,
+    turnCount: game.turnCount + 1,
+  }
+  const result: TurnResult = {
+    playerId: game.currentPlayerId,
+    total,
+    outcome,
+    targetId,
+    direction: direction ?? null,
+  }
+  const winningPlayer = winner(players)
+  if (winningPlayer) {
+    return { phase: 'finished', game: updatedGame, result, winnerId: winningPlayer.id }
+  }
+  return { phase: 'turn-complete', game: updatedGame, result }
+}
+
+function updateTurn(game: Game): GameFlow {
+  if (game.turn.phase !== 'complete') return { phase: 'playing', game }
+  const total = turnTotal(game.turn)
+  const outcome = calculateOutcome(total)
+  if (outcome.kind === 'attack') {
+    return { phase: 'choose-target', game, total, points: outcome.points }
+  }
+  return finishTurn(game, total)
+}
+
+export function rollGameDice(flow: GameFlow, random: RandomSource = Math.random): GameFlow {
+  if (flow.phase !== 'playing') throw new Error('No se puede lanzar en este momento.')
+  return updateTurn({ ...flow.game, turn: rollDice(flow.game.turn, random) })
+}
+
+export function selectGameDice(flow: GameFlow, ids: readonly number[]): GameFlow {
+  if (flow.phase !== 'playing') throw new Error('No se pueden apartar dados en este momento.')
+  return updateTurn({ ...flow.game, turn: selectDice(flow.game.turn, ids) })
+}
+
+export function attackTargets(flow: GameFlow): { next: Player; previous: Player } {
+  if (flow.phase !== 'choose-target') throw new Error('No hay un ataque pendiente.')
+  const { players, currentPlayerId } = flow.game
+  return {
+    next: findNeighbor(players, currentPlayerId, 'next'),
+    previous: findNeighbor(players, currentPlayerId, 'previous'),
+  }
+}
+
+export function chooseAttack(flow: GameFlow, direction: Direction): GameFlow {
+  if (flow.phase !== 'choose-target') throw new Error('No hay un ataque pendiente.')
+  return finishTurn(flow.game, flow.total, direction)
+}
+
+export function nextPlayer(flow: GameFlow): Player | null {
+  if (flow.phase === 'finished') return null
+  return findNeighbor(flow.game.players, flow.game.currentPlayerId, 'next')
+}
+
+export function advanceTurn(flow: GameFlow): GameFlow {
+  if (flow.phase !== 'turn-complete') throw new Error('El turno actual aún no se puede avanzar.')
+  const next = findNeighbor(flow.game.players, flow.game.currentPlayerId, 'next')
+  return {
+    phase: 'playing',
+    game: { ...flow.game, currentPlayerId: next.id, turn: createTurn() },
+  }
+}

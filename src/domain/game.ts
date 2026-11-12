@@ -30,6 +30,7 @@ export interface Game {
 }
 
 export interface GameSummary {
+  id: string
   finishedAt: string
   initialScore: number
   players: readonly Player[]

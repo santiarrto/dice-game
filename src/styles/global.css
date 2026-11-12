@@ -93,6 +93,47 @@ select:focus-visible {
   box-shadow: 0 1.2rem 3rem rgb(23 37 84 / 9%);
 }
 
+.history-panel {
+  margin-top: 1.5rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid #e1e8f2;
+  border-radius: 1.25rem;
+  background: #fff;
+}
+
+.history-panel h2 {
+  margin: 0.25rem 0 1rem;
+}
+
+.history-list {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history-item {
+  padding: 1rem;
+  border: 1px solid #e1e8f2;
+  border-radius: 0.7rem;
+}
+
+.history-item p {
+  margin: 0 0 0.5rem;
+}
+
+.history-item ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.history-hint {
+  margin-bottom: 0;
+  color: #52617b;
+  font-size: 0.85rem;
+}
+
 .setup-section {
   padding: clamp(1.25rem, 4vw, 2rem);
 }
@@ -382,5 +423,199 @@ select:focus-visible {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.75fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.game-panel {
+  min-width: 0;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid #e1e8f2;
+  border-radius: 1.25rem;
+  background: #fff;
+  box-shadow: 0 1.2rem 3rem rgb(23 37 84 / 9%);
+}
+
+.game-panel h2 {
+  margin: 0.25rem 0 1rem;
+  color: #15264c;
+}
+
+.game-current,
+.scoreboard__name {
+  overflow-wrap: anywhere;
+}
+
+.game-dice {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 1.25rem 0;
+}
+
+.game-die {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-height: 6rem;
+  padding: 0.5rem 0.2rem;
+  border: 2px solid #aebdd2;
+  border-radius: 0.75rem;
+  background: #f8faff;
+  color: #172554;
+}
+
+.game-die:disabled {
+  cursor: default;
+}
+
+.game-die--selected {
+  border-color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.game-die--locked {
+  border-color: #15803d;
+  background: #f0fdf4;
+}
+
+.game-die--last {
+  border-style: dashed;
+}
+
+.game-die__face {
+  font-size: clamp(2rem, 8vw, 3rem);
+  line-height: 1;
+}
+
+.game-die__state {
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 650;
+  text-align: center;
+}
+
+.game-total {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.game-help {
+  margin: 0.3rem 0 1rem;
+  color: #52617b;
+  font-size: 0.85rem;
+}
+
+.game-message {
+  padding: 0.75rem;
+  border-radius: 0.65rem;
+  background: #eff6ff;
+}
+
+.game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.attack-options {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  border: 0;
+}
+
+.attack-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.65rem;
+  overflow-wrap: anywhere;
+}
+
+.attack-options input {
+  flex: 0 0 auto;
+  accent-color: #1d4ed8;
+}
+
+.game-secondary,
+.game-link {
+  min-height: 3rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid #94a3b8;
+  border-radius: 0.7rem;
+  background: #fff;
+  color: #172554;
+  font-weight: 700;
+}
+
+.game-link {
+  border-color: transparent;
+  text-decoration: underline;
+}
+
+.start-button:disabled,
+.game-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.game-exit {
+  margin-top: 1.5rem;
+}
+
+.game-winner {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.scoreboard {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scoreboard__player {
+  padding: 0.8rem;
+  border: 1px solid #e1e8f2;
+  border-radius: 0.7rem;
+}
+
+.scoreboard__name {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.scoreboard__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.scoreboard__tags span {
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.4rem;
+  background: #eaf1ff;
+  color: #1e40af;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 680px) {
+  .game-layout {
+    grid-template-columns: 1fr;
   }
 }

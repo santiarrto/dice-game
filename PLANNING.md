@@ -6,22 +6,22 @@ Crear una aplicación web en español para jugar al juego de dados en navegadore
 
 ## Estado actual del proyecto
 
-Se completaron la inicialización de la aplicación y el modelo de reglas. La configuración de jugadores ya prepara una partida, pero su historial depende de T04; la interfaz de partida aún no está implementada.
+Se completaron la inicialización, el modelo de reglas, la configuración de jugadores, el historial local, el controlador y la mesa de partida. La pantalla final con guardado automático se conectará en T08; la animación 3D de los dados corresponde a T09.
 
 | Tarea | Estado |
 |---|---|
 | T01 — Inicializar la aplicación | ✅ Completada |
 | T02 — Modelar las reglas del juego | ✅ Completada |
 | T03 — Probar reglas y casos límite | ⚪ No asignada |
-| T04 — Implementar historial local | ⚪ No asignada |
-| T05 — Crear la bienvenida y configuración | 🔴 Bloqueada por T04 (historial) |
-| T06 — Implementar el flujo y estado de partida | ⚪ No asignada |
-| T07 — Construir la mesa de juego | ⚪ No asignada |
+| T04 — Implementar historial local | ✅ Completada |
+| T05 — Crear la bienvenida y configuración | ✅ Completada |
+| T06 — Implementar el flujo y estado de partida | ✅ Completada |
+| T07 — Construir la mesa de juego | ✅ Completada |
 | T08 — Mostrar victoria y resultados | ⚪ No asignada |
 | T09 — Adaptabilidad, animación y accesibilidad | ⚪ No asignada |
 | T10 — Validación integral y entrega | ⚪ No asignada |
 
-El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. T03 y T04 ya pueden iniciarse; T05 se completará después de T04.
+El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. T03 y T08 ya pueden iniciarse.
 
 ## Roles y responsabilidades
 
@@ -40,7 +40,7 @@ El detalle, las dependencias y el significado de cada estado están en [TASKS.md
 - Bienvenida con selección de 2 a 8 participantes, nombres, marcador inicial (20 por defecto, entre 10 y 50) y orden aleatorio o manual.
 - Turnos con seis dados de seis caras, hasta cinco lanzamientos, selección/apartado de dados, suma acumulada, ataques, pérdida de puntos y eliminación.
 - Lista ordenada de participantes con marcador, jugador activo, próximo jugador y último jugador que completó un turno.
-- Animaciones del lanzamiento y cambios de estado, respetando la preferencia de movimiento reducido.
+- Animación de lanzamiento orgánica con apariencia tridimensional y cambios de estado, respetando la preferencia de movimiento reducido.
 - Pantalla de victoria con ganador, resumen y acción para comenzar una nueva partida.
 - Consulta de las diez partidas terminadas más recientes, guardadas en el almacenamiento local del navegador.
 
@@ -91,7 +91,9 @@ src/
 
 - Las funciones de `domain/` reciben datos y devuelven resultados nuevos; no leen ni modifican DOM, React ni almacenamiento.
 - El controlador/reducer aplica acciones permitidas y produce el estado siguiente de la partida. Los componentes presentan el estado y envían acciones.
-- El adaptador de `persistence/` convierte resúmenes en datos versionados, valida lo leído y comunica errores de almacenamiento a la interfaz.
+- Para T07, `features/game/gameFlow.ts` expone `startGame`, `rollGameDice`, `selectGameDice`, `attackTargets`, `chooseAttack`, `advanceTurn` y `nextPlayer`. Sus fases distinguen el turno en juego, la selección de objetivo, el resultado y la victoria; el tablero debe usar el estado actualizado en cada acción.
+- El adaptador de `persistence/` valida y guarda resúmenes versionados con identificador único y fecha ISO; rechaza datos inválidos o versiones incompatibles sin sobrescribirlos y comunica errores de almacenamiento a la interfaz.
+- Para T08, `saveHistory` recibe un `GameSummary` de una partida terminada, con un `id` estable y `finishedAt` en formato `Date.toISOString()`. Guardar el mismo resumen dos veces no lo duplica; la pantalla de victoria debe informar si se lanza un `HistoryError`.
 - El historial contiene fecha, ganador, participantes y marcadores finales, más información breve para el resumen. No contiene datos personales fuera de los nombres ingresados por los jugadores.
 - La interfaz mantiene los resultados legibles en móvil; la lista de jugadores puede ubicarse debajo del tablero o presentarse en un panel compacto en pantallas estrechas.
 - Las pruebas unitarias y de componentes se colocan junto al código correspondiente; las pruebas de navegador se ubican en `tests/e2e/`.
@@ -106,6 +108,7 @@ src/
 - Probar casos límite de reglas, transiciones de estado y fallos de almacenamiento; usar azar determinista en pruebas.
 - Usar HTML semántico, foco visible, etiquetas accesibles y controles utilizables con teclado y tacto.
 - Respetar `prefers-reduced-motion`; la animación es decorativa y no debe ocultar resultados ni bloquear interacciones.
+- La animación de dados representa los valores calculados por el controlador: no genera resultados ni modifica dados apartados. Con movimiento reducido debe mostrar inmediatamente las caras finales.
 - Evitar dependencias de ejecución innecesarias. Toda dependencia nueva debe resolver una necesidad del MVP y quedar reflejada en el lockfile.
 
 ## Dependencias entre tareas
