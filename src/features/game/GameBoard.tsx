@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { selectedTotal, type Direction, type Game, type GameSummary, type Player } from '../../domain/game'
+import { selectedTotal, type DieValue, type Direction, type Game, type GameSummary, type Player } from '../../domain/game'
 import { HistoryError, saveHistory } from '../../persistence/history'
 import {
   advanceTurn,
@@ -17,7 +17,14 @@ interface GameBoardProps {
   onReturn: () => void
 }
 
-const dieFaces = { 1: '⚀', 2: '⚁', 3: '⚂', 4: '⚃', 5: '⚄', 6: '⚅' }
+const pipPositions: Record<DieValue, readonly number[]> = {
+  1: [5],
+  2: [1, 9],
+  3: [1, 5, 9],
+  4: [1, 3, 7, 9],
+  5: [1, 3, 5, 7, 9],
+  6: [1, 3, 4, 6, 7, 9],
+}
 
 function playerById(players: readonly Player[], id: string): Player {
   const player = players.find((item) => item.id === id)
@@ -69,6 +76,9 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
   const turnNumber = flow.phase === 'turn-complete' || flow.phase === 'finished'
     ? flow.game.turnCount
     : flow.game.turnCount + 1
+  const affectedPlayerId = flow.phase === 'turn-complete' || flow.phase === 'finished'
+    ? flow.result.targetId
+    : null
 
   function updateFlow(next: GameFlow) {
     if (next.phase === 'finished') {
@@ -175,7 +185,26 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
                   : [...selected, die.id])}
                 type="button"
               >
-                <span aria-hidden="true" className="game-die__face">{die.value === null ? '—' : dieFaces[die.value]}</span>
+                <span
+                  aria-hidden="true"
+                  className={`game-die__cube${rolledLast ? ' game-die__cube--rolling' : ''}`}
+                  data-value={die.value ?? 0}
+                  key={rolledLast ? `${turn.rollCount}-${die.id}` : `idle-${die.id}`}
+                >
+                  {([1, 2, 3, 4, 5, 6] as const).map((value) => (
+                    <span className={`game-die__side game-die__side--${value}`} key={value}>
+                      {pipPositions[value].map((pip) => (
+                        <span
+                          className="game-die__pip"
+                          key={pip}
+                          style={{
+                            gridArea: `${Math.ceil(pip / 3)} / ${((pip - 1) % 3) + 1}`,
+                          }}
+                        />
+                      ))}
+                    </span>
+                  ))}
+                </span>
                 <span className="game-die__state">{die.locked ? 'Apartado' : chosen ? 'Seleccionado' : die.value === null ? 'Sin lanzar' : 'Disponible'}</span>
                 {rolledLast && <span className="game-die__state">Último lanzamiento</span>}
               </button>
@@ -249,7 +278,10 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
         <h2 id="scoreboard-heading">Jugadores</h2>
         <ol className="scoreboard">
           {players.map((player) => (
-            <li className="scoreboard__player" key={player.id}>
+            <li
+              className={`scoreboard__player${player.score === 0 ? ' scoreboard__player--eliminated' : ''}${player.id === affectedPlayerId ? ' scoreboard__player--affected' : ''}`}
+              key={player.id}
+            >
               <div className="scoreboard__name">
                 <strong>{player.name}</strong>
                 <span>{player.score} puntos</span>

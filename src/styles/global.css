@@ -32,7 +32,7 @@ input[type="radio"] {
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 3px solid #f59e0b;
+  outline: 3px solid #b45309;
   outline-offset: 3px;
 }
 
@@ -314,8 +314,8 @@ select:focus-visible {
 }
 
 .order-list__controls button {
-  width: 2rem;
-  height: 2rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
   background: white;
@@ -355,7 +355,7 @@ select:focus-visible {
   box-shadow: 0 0.25rem 0.7rem rgb(29 78 216 / 20%);
 }
 
-.start-button:hover {
+.start-button:hover:not(:disabled) {
   background: #1e40af;
 }
 
@@ -462,12 +462,13 @@ select:focus-visible {
   display: grid;
   align-content: center;
   justify-items: center;
-  min-height: 6rem;
+  min-height: 7rem;
   padding: 0.5rem 0.2rem;
   border: 2px solid #aebdd2;
   border-radius: 0.75rem;
   background: #f8faff;
   color: #172554;
+  perspective: 700px;
 }
 
 .game-die:disabled {
@@ -488,9 +489,124 @@ select:focus-visible {
   border-style: dashed;
 }
 
-.game-die__face {
-  font-size: clamp(2rem, 8vw, 3rem);
-  line-height: 1;
+.game-die__cube {
+  position: relative;
+  display: block;
+  width: 2.6rem;
+  height: 2.6rem;
+  margin: 0.1rem 0 0.25rem;
+  transform: var(--die-rest);
+  transform-style: preserve-3d;
+}
+
+.game-die__cube[data-value="0"] {
+  --die-rest: rotateX(-15deg) rotateY(20deg);
+}
+
+.game-die__cube[data-value="1"] {
+  --die-rest: rotateX(0) rotateY(0);
+}
+
+.game-die__cube[data-value="2"] {
+  --die-rest: rotateY(-90deg);
+}
+
+.game-die__cube[data-value="3"] {
+  --die-rest: rotateX(-90deg);
+}
+
+.game-die__cube[data-value="4"] {
+  --die-rest: rotateX(90deg);
+}
+
+.game-die__cube[data-value="5"] {
+  --die-rest: rotateY(90deg);
+}
+
+.game-die__cube[data-value="6"] {
+  --die-rest: rotateY(180deg);
+}
+
+.game-die__side {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  padding: 0.3rem;
+  border: 1px solid #64748b;
+  border-radius: 0.4rem;
+  background: linear-gradient(145deg, #fff, #e8eef8);
+  backface-visibility: hidden;
+  box-shadow: inset 0 0 0 1px #fff;
+}
+
+.game-die__side--1 {
+  transform: translateZ(1.3rem);
+}
+
+.game-die__side--2 {
+  transform: rotateY(90deg) translateZ(1.3rem);
+}
+
+.game-die__side--3 {
+  transform: rotateX(90deg) translateZ(1.3rem);
+}
+
+.game-die__side--4 {
+  transform: rotateX(-90deg) translateZ(1.3rem);
+}
+
+.game-die__side--5 {
+  transform: rotateY(-90deg) translateZ(1.3rem);
+}
+
+.game-die__side--6 {
+  transform: rotateY(180deg) translateZ(1.3rem);
+}
+
+.game-die--selected .game-die__side {
+  border-color: #1d4ed8;
+}
+
+.game-die--locked .game-die__side {
+  border-color: #15803d;
+}
+
+.game-die__pip {
+  align-self: center;
+  justify-self: center;
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: #172554;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .game-die__cube--rolling {
+    animation: die-tumble 760ms cubic-bezier(0.16, 0.76, 0.35, 1) both;
+  }
+
+  @keyframes die-tumble {
+    0% {
+      transform: rotateX(-25deg) rotateY(35deg) rotateZ(-10deg) translate3d(0, 0.4rem, -1rem) scale(0.8);
+    }
+
+    24% {
+      transform: rotateX(220deg) rotateY(-145deg) rotateZ(38deg) translate3d(-0.2rem, -0.75rem, 1.2rem) scale(1.1);
+    }
+
+    58% {
+      transform: rotateX(405deg) rotateY(250deg) rotateZ(-18deg) translate3d(0.2rem, -0.2rem, 0.4rem);
+    }
+
+    82% {
+      transform: rotateX(570deg) rotateY(330deg) rotateZ(8deg) translate3d(0, 0.1rem, 0);
+    }
+
+    100% {
+      transform: var(--die-rest);
+    }
+  }
 }
 
 .game-die__state {
@@ -563,10 +679,16 @@ select:focus-visible {
   text-decoration: underline;
 }
 
-.start-button:disabled,
-.game-secondary:disabled {
+.start-button:disabled {
+  background: #64748b;
+  box-shadow: none;
   cursor: not-allowed;
-  opacity: 0.5;
+}
+
+.game-secondary:disabled {
+  background: #e2e8f0;
+  color: #334155;
+  cursor: not-allowed;
 }
 
 .game-exit {
@@ -596,6 +718,17 @@ select:focus-visible {
   padding: 0.8rem;
   border: 1px solid #e1e8f2;
   border-radius: 0.7rem;
+  transition: background-color 240ms ease, border-color 240ms ease, opacity 240ms ease;
+}
+
+.scoreboard__player--affected {
+  border-color: #d97706;
+  background: #fffbeb;
+}
+
+.scoreboard__player--eliminated {
+  border-style: dashed;
+  background: #f8fafc;
 }
 
 .scoreboard__name {

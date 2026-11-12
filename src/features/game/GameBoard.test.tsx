@@ -26,6 +26,8 @@ describe('mesa de juego', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
     expect(screen.getByText(/Lanzamiento:/)).toHaveTextContent('1 de 5')
     expect(screen.getByRole('button', { name: 'Lanzar dados' })).toBeDisabled()
+    expect(die(1).querySelector('.game-die__cube')).toHaveClass('game-die__cube--rolling')
+    expect(die(1).querySelector('.game-die__cube')).toHaveAttribute('data-value', '4')
     fireEvent.click(die(1))
     fireEvent.click(die(2))
     expect(screen.getByText(/Suma seleccionada:/)).toHaveTextContent('8')
@@ -35,6 +37,9 @@ describe('mesa de juego', () => {
 
     random.mockReturnValue(0.99)
     fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    expect(die(1).querySelector('.game-die__cube')).not.toHaveClass('game-die__cube--rolling')
+    expect(die(3).querySelector('.game-die__cube')).toHaveClass('game-die__cube--rolling')
+    expect(die(3).querySelector('.game-die__cube')).toHaveAttribute('data-value', '6')
     expect(die(1)).toHaveAccessibleName('Dado 1: valor 4, apartado')
     expect(die(3)).toHaveAccessibleName('Dado 3: valor 6, disponible, último lanzamiento')
     expect(screen.getByText(/Suma seleccionada:/)).toHaveTextContent('8')
@@ -61,6 +66,7 @@ describe('mesa de juego', () => {
     expect(rows[1]).toHaveTextContent('Siguiente')
     expect(rows[2]).toHaveTextContent('Eva')
     expect(rows[2]).toHaveTextContent('4 puntos')
+    expect(rows[2]).toHaveClass('scoreboard__player--affected')
 
     fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
     expect(screen.getByText(/Juega:/)).toHaveTextContent('Luis')

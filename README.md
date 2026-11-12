@@ -2,7 +2,7 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> 🚧 **Estado del proyecto:** ya se puede jugar una partida, consultar el resultado final y guardar el historial. La animación 3D de los dados aún está pendiente.
+> ✅ **Estado del proyecto:** ya se puede jugar una partida, consultar el resultado final y guardar el historial. El tablero adaptable, la animación 3D de los dados y los ajustes de accesibilidad están implementados; queda la validación integral de entrega.
 
 ## 🚀 Desarrollo
 

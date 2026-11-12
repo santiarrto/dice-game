@@ -6,22 +6,22 @@ Crear una aplicación web en español para jugar al juego de dados en navegadore
 
 ## Estado actual del proyecto
 
-Se completaron la inicialización, el modelo de reglas, la configuración de jugadores, el historial local, el controlador, la mesa de partida y la pantalla final con guardado automático. La animación 3D de los dados corresponde a T09.
+Se completaron la inicialización, el modelo de reglas y sus pruebas, la configuración de jugadores, el historial local, el controlador, la mesa de partida, la pantalla final con guardado automático y la adaptabilidad, animación y accesibilidad de T09.
 
 | Tarea | Estado |
 |---|---|
 | T01 — Inicializar la aplicación | ✅ Completada |
 | T02 — Modelar las reglas del juego | ✅ Completada |
-| T03 — Probar reglas y casos límite | ⚪ No asignada |
+| T03 — Probar reglas y casos límite | ✅ Completada |
 | T04 — Implementar historial local | ✅ Completada |
 | T05 — Crear la bienvenida y configuración | ✅ Completada |
 | T06 — Implementar el flujo y estado de partida | ✅ Completada |
 | T07 — Construir la mesa de juego | ✅ Completada |
 | T08 — Mostrar victoria y resultados | ✅ Completada |
-| T09 — Adaptabilidad, animación y accesibilidad | ⚪ No asignada |
+| T09 — Adaptabilidad, animación y accesibilidad | ✅ Completada |
 | T10 — Validación integral y entrega | ⚪ No asignada |
 
-El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. T03 y T09 ya pueden iniciarse.
+El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. T03 y T09 están completadas; T10 es la tarea pendiente de validación integral.
 
 ## Roles y responsabilidades
 
