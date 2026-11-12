@@ -13,7 +13,6 @@
 }
 
 body {
-  min-width: 320px;
   min-height: 100vh;
   margin: 0;
 }
@@ -579,6 +578,12 @@ select:focus-visible {
   font-weight: 700;
 }
 
+.game-summary {
+  max-width: 42rem;
+  margin: 0 auto;
+  overflow-wrap: anywhere;
+}
+
 .scoreboard {
   display: grid;
   gap: 0.75rem;
@@ -597,6 +602,10 @@ select:focus-visible {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.scoreboard__name strong {
+  min-width: 0;
 }
 
 .scoreboard__tags {

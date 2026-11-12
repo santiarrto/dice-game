@@ -6,7 +6,7 @@ Crear una aplicación web en español para jugar al juego de dados en navegadore
 
 ## Estado actual del proyecto
 
-Se completaron la inicialización, el modelo de reglas, la configuración de jugadores, el historial local, el controlador y la mesa de partida. La pantalla final con guardado automático se conectará en T08; la animación 3D de los dados corresponde a T09.
+Se completaron la inicialización, el modelo de reglas, la configuración de jugadores, el historial local, el controlador, la mesa de partida y la pantalla final con guardado automático. La animación 3D de los dados corresponde a T09.
 
 | Tarea | Estado |
 |---|---|
@@ -17,11 +17,11 @@ Se completaron la inicialización, el modelo de reglas, la configuración de jug
 | T05 — Crear la bienvenida y configuración | ✅ Completada |
 | T06 — Implementar el flujo y estado de partida | ✅ Completada |
 | T07 — Construir la mesa de juego | ✅ Completada |
-| T08 — Mostrar victoria y resultados | ⚪ No asignada |
+| T08 — Mostrar victoria y resultados | ✅ Completada |
 | T09 — Adaptabilidad, animación y accesibilidad | ⚪ No asignada |
 | T10 — Validación integral y entrega | ⚪ No asignada |
 
-El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. T03 y T08 ya pueden iniciarse.
+El detalle, las dependencias y el significado de cada estado están en [TASKS.md](./TASKS.md). Mantén esta tabla sincronizada con ese archivo al cambiar el estado de una tarea. T03 y T09 ya pueden iniciarse.
 
 ## Roles y responsabilidades
 
@@ -93,7 +93,7 @@ src/
 - El controlador/reducer aplica acciones permitidas y produce el estado siguiente de la partida. Los componentes presentan el estado y envían acciones.
 - Para T07, `features/game/gameFlow.ts` expone `startGame`, `rollGameDice`, `selectGameDice`, `attackTargets`, `chooseAttack`, `advanceTurn` y `nextPlayer`. Sus fases distinguen el turno en juego, la selección de objetivo, el resultado y la victoria; el tablero debe usar el estado actualizado en cada acción.
 - El adaptador de `persistence/` valida y guarda resúmenes versionados con identificador único y fecha ISO; rechaza datos inválidos o versiones incompatibles sin sobrescribirlos y comunica errores de almacenamiento a la interfaz.
-- Para T08, `saveHistory` recibe un `GameSummary` de una partida terminada, con un `id` estable y `finishedAt` en formato `Date.toISOString()`. Guardar el mismo resumen dos veces no lo duplica; la pantalla de victoria debe informar si se lanza un `HistoryError`.
+- Al terminar la partida, la mesa crea un `GameSummary` con un `id` único y `finishedAt` en formato `Date.toISOString()` y lo entrega a `saveHistory`. Guardar el mismo resumen dos veces no lo duplica; la pantalla de victoria informa si se lanza un `HistoryError`.
 - El historial contiene fecha, ganador, participantes y marcadores finales, más información breve para el resumen. No contiene datos personales fuera de los nombres ingresados por los jugadores.
 - La interfaz mantiene los resultados legibles en móvil; la lista de jugadores puede ubicarse debajo del tablero o presentarse en un panel compacto en pantallas estrechas.
 - Las pruebas unitarias y de componentes se colocan junto al código correspondiente; las pruebas de navegador se ubican en `tests/e2e/`.

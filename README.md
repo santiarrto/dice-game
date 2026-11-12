@@ -2,7 +2,7 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> 🚧 **Estado del proyecto:** ya se puede jugar una partida en la mesa y consultar el historial. La pantalla final con guardado automático y la animación 3D de los dados aún están pendientes.
+> 🚧 **Estado del proyecto:** ya se puede jugar una partida, consultar el resultado final y guardar el historial. La animación 3D de los dados aún está pendiente.
 
 ## 🚀 Desarrollo
 
@@ -27,7 +27,7 @@ La bienvenida muestra hasta **10 partidas terminadas** guardadas en el navegador
 
 El historial utiliza un formato versionado. Si los datos están dañados, la versión no es compatible o el almacenamiento no está disponible, se muestra un aviso y se puede seguir configurando una partida; los datos existentes no se sobrescriben.
 
-La integración que guardará el resultado al terminar una partida se implementará junto con la pantalla de victoria.
+Al finalizar una partida se muestra el ganador y el resumen, y se intenta guardar el resultado automáticamente. Si no se puede guardar, el resumen permanece visible y se informa del error.
 
 ## 🏁 Objetivo
 
