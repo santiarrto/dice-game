@@ -158,11 +158,11 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## Etapa 2 — Personalización y funcionalidades ampliadas
 
-Las tareas T11–T22 amplían el MVP sin alterar las reglas del juego. Las decisiones están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas. El logo nuevo debe ser proporcionado por el dueño del producto antes de completar T18.
+Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decisiones están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas. El logo nuevo debe ser proporcionado por el dueño del producto antes de completar T18.
 
 ## T11 — Definir catálogo y modelo de avatares
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. Los jugadores de partidas nuevas usan `player1`; los registros históricos sin avatar se migran con ese valor predeterminado en T13.
 
 **Dependencias:** T10.
 
@@ -175,7 +175,7 @@ Las tareas T11–T22 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T12 — Configurar avatares y participantes humanos/IA
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada.
 
 **Dependencias:** T11.
 
@@ -189,7 +189,7 @@ Las tareas T11–T22 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T13 — Persistir avatares y preparar el historial versionado
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. El historial ahora guarda avatares en versión 2 y migra los registros de versión 1.
 
 **Dependencias:** T11.
 
@@ -201,22 +201,22 @@ Las tareas T11–T22 amplían el MVP sin alterar las reglas del juego. Las decis
 
 **Aceptación:** una partida nueva conserva los IDs de avatar tras recargar; los registros de versión 1 siguen siendo legibles con el avatar predeterminado; el esquema admite el ranking; los datos inválidos siguen mostrando un error recuperable.
 
-## T14 — Mostrar avatares en todas las vistas
+## T14 — Mostrar avatares en resultados e historial
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada.
 
 **Dependencias:** T12 y T13.
 
-- Mostrar los avatares junto a los participantes en el tablero y en el resultado final.
+- Mostrar los avatares junto a los participantes en el resultado final.
 - Mostrar el avatar guardado en cada entrada del historial reciente.
-- Usar `player1` si un registro no tiene avatar o su ID no está disponible.
+- Usar `player1` para registros de versión 1 sin avatar y como alternativa si una imagen válida no carga, con un aviso. Los IDs inválidos en versión 2 mantienen el error recuperable de T13 y no se sobrescriben.
 - Mantener los nombres y estados de jugador visibles; el avatar es complementario y no sustituye etiquetas ni texto.
 
-**Aceptación:** el avatar correcto acompaña al jugador en configuración, partida, victoria e historial; la interfaz sigue siendo clara con imágenes fallidas, datos antiguos y movimiento reducido.
+**Aceptación:** el avatar correcto acompaña al jugador en la victoria e historial; la interfaz sigue siendo clara con imágenes fallidas, datos antiguos y movimiento reducido.
 
 ## T15 — Implementar tres dificultades de IA
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada.
 
 **Dependencias:** T06 y T12.
 
@@ -304,14 +304,53 @@ Las tareas T11–T22 amplían el MVP sin alterar las reglas del juego. Las decis
 
 **Aceptación:** en el caso descrito, el único dado restante se aparta sin interacción adicional y el jugador solo confirma el cierre del turno; no se puede volver a lanzar ese dado, se respetan ataques/eliminaciones y la acción funciona con teclado y en móvil.
 
+## T23 — Señalar con una corona a los líderes
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T07 y T09.
+
+- Mostrar una corona en la lista de jugadores de la mesa junto a cada participante activo con el mayor puntaje actual; mostrarla en todos los líderes si hay empate.
+- Actualizar el indicador al cambiar los marcadores o al eliminar participantes; no mostrarlo junto a jugadores eliminados.
+- Proporcionar una descripción accesible y localizada del liderazgo, sin depender únicamente del icono.
+- Cubrir con pruebas el liderazgo único, los empates, los cambios de líder y la eliminación, además de verificar la presentación en móvil.
+
+**Aceptación:** la corona identifica a todos y solo los participantes activos con mayor puntaje durante la partida, se actualiza al cambiar el estado y es comprensible con tecnología de asistencia. No modifica la clasificación final por orden de eliminación ni se requiere en el historial.
+
+## T24 — Atacar automáticamente al único objetivo disponible
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T06 y T07.
+
+- Si un ataque tiene un solo objetivo activo elegible distinto del atacante, aplicar el ataque automáticamente sin pedir que se elija una dirección; por ejemplo, cuando solo quedan dos jugadores.
+- Si existen varios objetivos posibles, conservar la elección actual de dirección y seleccionar al jugador activo más cercano en esa dirección.
+- Mantener intactos el cálculo del daño, la eliminación y la resolución normal del turno.
+- Cubrir con pruebas el caso de objetivo único, la eliminación del objetivo y la elección de dirección cuando hay varios objetivos; comprobar la interacción en escritorio y móvil.
+
+**Aceptación:** cuando solo hay un objetivo activo posible, el ataque se aplica una sola vez a ese jugador y el flujo continúa correctamente sin una elección redundante; con varios objetivos se mantiene la elección actual y las reglas no cambian.
+
+## T25 — Mostrar en el tablero los avatares seleccionados
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T07 y T12.
+
+- Mostrar junto al nombre de cada participante en la lista del tablero el avatar seleccionado durante la configuración.
+- Mantener visible el nombre, el marcador y los estados de turno y eliminación; el avatar es complementario y no los sustituye.
+- Usar el avatar predeterminado si el ID no se puede resolver o la imagen no carga.
+- Verificar que la correspondencia entre participantes y avatares se conserva tras iniciar la partida y que la lista sigue siendo legible en móvil.
+
+**Aceptación:** cada participante muestra en el tablero el mismo avatar que eligió en la configuración, con su nombre y estado legibles; los casos de avatar no disponible tienen un reemplazo comprensible y la vista funciona en móvil.
+
 ## T22 — Validar e integrar la Etapa 2
 
 **Estado:** ⚪ No asignada.
 
-**Dependencias:** T14, T15, T16, T17, T18, T19, T20 y T21.
+**Dependencias:** T14, T15, T16, T17, T18, T19, T20, T21, T23, T24 y T25.
 
-- Añadir pruebas unitarias y de integración para catálogo/migración de avatares, configuración humana/IA, políticas de IA, ranking, traducciones, páginas nuevas y cierre automático con un dado.
-- Extender las pruebas de navegador para escritorio, móvil, selección de idioma, juego mixto, ranking, historial y confirmación de cierre de turno.
+- Añadir pruebas unitarias y de integración para catálogo/migración de avatares, avatares en tablero/resultados/historial, configuración humana/IA, políticas de IA, ranking, indicador de líderes, traducciones, páginas nuevas, cierre automático con un dado y ataque automático al único objetivo.
+- Extender las pruebas de navegador para escritorio, móvil, selección de idioma, juego mixto, ranking, historial, avatares en el tablero, confirmación de cierre de turno y ataque automático cuando solo quede un objetivo.
 - Ejecutar lint, pruebas unitarias, pruebas de navegador y build; actualizar la documentación.
 
-**Aceptación:** las funcionalidades de T11–T21 cumplen sus criterios, las pruebas pasan, no hay errores de consola en flujos críticos y el archivo de logo requerido está integrado.
+**Aceptación:** las funcionalidades de T11–T21 y T23–T25 cumplen sus criterios, las pruebas pasan, no hay errores de consola en flujos críticos y el archivo de logo requerido está integrado.

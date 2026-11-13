@@ -2,7 +2,9 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> ✅ **Estado del proyecto:** MVP validado. La Etapa 2 está planificada, pero aún no implementada: avatares, participantes humanos/IA con tres dificultades, ranking final, interfaz en inglés y español (inglés predeterminado), nuevo logo y favicon, y páginas de contacto/FAQs.
+> ✅ **Estado del proyecto:** MVP validado. La Etapa 2 está en curso: se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente y los avatares aparecen en resultados e historial. Los avatares en el tablero durante la partida, el ranking, los idiomas, el logo y las páginas informativas están pendientes.
+
+Cada participante IA tiene una dificultad: fácil elige acciones legales al azar; media busca acercarse a 30; y difícil considera los marcadores, la supervivencia y los objetivos de ataque. Las dos últimas usan una estimación del resultado suponiendo un lanzamiento futuro de los dados restantes, no una optimización exhaustiva de todos los lanzamientos posibles.
 
 La página de contacto abrirá un mensaje de correo dirigido a `santiarrto@gmail.com`; no se almacenarán ni enviarán sugerencias mediante un backend. La integración del nuevo logo depende de recibir el archivo proporcionado por el dueño del producto. El alcance detallado está en [PLANNING.md](./PLANNING.md) y sus tareas en [TASKS.md](./TASKS.md).
 
@@ -45,7 +47,7 @@ npm run test:e2e            # Probar partidas completas en escritorio y móvil
 
 La bienvenida muestra hasta **10 partidas terminadas** guardadas en el navegador, con su ganador y marcadores finales. Los datos no se sincronizan entre dispositivos y pueden borrarse al limpiar el almacenamiento del navegador. La partida en curso no se guarda.
 
-El historial utiliza un formato versionado. Si los datos están dañados, la versión no es compatible o el almacenamiento no está disponible, se muestra un aviso y se puede seguir configurando una partida; los datos existentes no se sobrescriben.
+El historial utiliza un formato versionado. Los registros de versión 1 se migran al leerlos y reciben el avatar predeterminado `player1`; los nuevos registros usan la versión 2, que conserva los avatares y admite la futura clasificación final. Si una imagen no carga, se muestra el avatar predeterminado y un aviso. Si los datos están dañados, la versión no es compatible o el almacenamiento no está disponible, se muestra un aviso y se puede seguir configurando una partida; los datos existentes no se sobrescriben.
 
 Al finalizar una partida se muestra el ganador y el resumen, y se intenta guardar el resultado automáticamente. Si no se puede guardar, el resumen permanece visible y se informa del error.
 
@@ -156,7 +158,8 @@ dice-game/
     ├── test-setup.ts     # Configuración de pruebas
     ├── assets/
     │   ├── icon.jpg
-    │   └── player-icons/ # Avatares para la Etapa 2
+    │   ├── avatars.ts    # Catálogo tipado de imágenes de avatar
+    │   └── player-icons/ # Imágenes locales de avatares
     ├── app/              # Composición de la aplicación y su prueba
     ├── domain/           # Reglas y pruebas del juego
     ├── features/game/    # Mesa, controlador de partida y sus pruebas

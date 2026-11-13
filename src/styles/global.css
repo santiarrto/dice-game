@@ -31,7 +31,8 @@ input[type="radio"] {
 
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
+select:focus-visible,
+summary:focus-visible {
   outline: 3px solid #b45309;
   outline-offset: 3px;
 }
@@ -123,8 +124,48 @@ select:focus-visible {
 }
 
 .history-item ul {
+  display: grid;
+  gap: 0.6rem;
   margin: 0;
-  padding-left: 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.history-item__player,
+.scoreboard__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.history-item__player > span:last-child {
+  overflow-wrap: anywhere;
+}
+
+.player-avatar {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.player-avatar__image,
+.player-avatar__placeholder {
+  display: inline-grid;
+  flex: 0 0 3rem;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: 0.5rem;
+  background: #e1e8f2;
+  object-fit: cover;
+}
+
+.player-avatar__notice {
+  color: #92400e;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
 }
 
 .history-hint {
@@ -196,6 +237,69 @@ select:focus-visible {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.player-setup {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid #e1e8f2;
+  border-radius: 0.7rem;
+}
+
+.avatar-picker summary {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 3rem;
+  color: #1d4ed8;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.avatar-picker img {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.avatar-picker__options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.avatar-picker__options legend {
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.avatar-picker__option {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  padding: 0.4rem;
+  border: 2px solid #dce5f0;
+  border-radius: 0.6rem;
+  cursor: pointer;
+}
+
+.avatar-picker__option:has(input:checked) {
+  border-color: #1d4ed8;
+  background: #eaf2ff;
+}
+
+.avatar-picker__option input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: #1d4ed8;
 }
 
 .setup-options {
@@ -492,6 +596,7 @@ select:focus-visible {
 .game-die__cube {
   position: relative;
   display: block;
+  pointer-events: none;
   width: 2.6rem;
   height: 2.6rem;
   margin: 0.1rem 0 0.25rem;

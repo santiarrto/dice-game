@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { PlayerAvatar } from '../../components/PlayerAvatar'
 import { selectedTotal, type DieValue, type Direction, type Game, type GameSummary, type Player } from '../../domain/game'
 import { HistoryError, saveHistory } from '../../persistence/history'
+import { playAiStep } from './ai'
 import {
   advanceTurn,
   attackTargets,
@@ -65,9 +67,10 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
 
   const { turn, players, currentPlayerId, lastPlayerId } = flow.game
   const current = playerById(players, currentPlayerId)
+  const isAiTurn = current.kind === 'ai'
   const upcoming = nextPlayer(flow)
-  const choosingDice = flow.phase === 'playing' && turn.phase === 'selecting'
-  const canRoll = flow.phase === 'playing' && turn.phase === 'ready'
+  const choosingDice = !isAiTurn && flow.phase === 'playing' && turn.phase === 'selecting'
+  const canRoll = !isAiTurn && flow.phase === 'playing' && turn.phase === 'ready'
   const selectedSum = turn.dice.reduce((sum, die) => {
     if (!selection.includes(die.id)) return sum
     if (die.value === null || die.locked) throw new Error('La selección de dados no es válida.')
@@ -126,6 +129,22 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
     }
   }
 
+  useEffect(() => {
+    if (!isAiTurn || flow.phase === 'finished' || confirmExit) return
+    const timer = window.setTimeout(() => {
+      if (flow.phase === 'playing' && flow.game.turn.phase === 'ready') {
+        setLastRoll(flow.game.turn.dice.filter((die) => !die.locked).map((die) => die.id))
+      }
+      if (flow.phase === 'turn-complete') {
+        setLastRoll([])
+        setAttackDirection(null)
+      }
+      setSelection([])
+      updateFlow(playAiStep(flow))
+    }, flow.phase === 'turn-complete' ? 1400 : 650)
+    return () => window.clearTimeout(timer)
+  }, [flow, isAiTurn, confirmExit])
+
   if (flow.phase === 'finished') {
     return (
       <section className="game-panel game-summary" aria-labelledby="summary-heading">
@@ -140,7 +159,10 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
           {players.map((player) => (
             <li className="scoreboard__player" key={player.id}>
               <div className="scoreboard__name">
-                <strong>{player.name}</strong>
+                <div className="scoreboard__identity">
+                  <PlayerAvatar avatarId={player.avatarId} />
+                  <strong>{player.name}</strong>
+                </div>
                 <span>{player.score} puntos</span>
               </div>
               <div className="scoreboard__tags">
@@ -165,6 +187,7 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
         <p className="section-kicker">Turno {turnNumber}</p>
         <h2 id="game-heading">Mesa de juego</h2>
         <p className="game-current">Juega: <strong>{current.name}</strong></p>
+        {isAiTurn && <p>La IA juega automáticamente.</p>}
         <p>Lanzamiento: <strong>{turn.rollCount} de 5</strong></p>
 
         <div className="game-dice" role="group" aria-label="Dados">
@@ -214,7 +237,13 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
 
         <p className="game-total">Suma seleccionada: <strong>{selectedSum}</strong></p>
         <p className="game-help">Incluye los dados apartados y los seleccionados en este lanzamiento.</p>
-        <p aria-atomic="true" aria-live="polite" className="game-message">{turnMessage(flow)}</p>
+        <p aria-atomic="true" aria-live="polite" className="game-message">
+          {isAiTurn && flow.phase === 'playing'
+            ? turn.phase === 'ready' ? 'La IA va a lanzar los dados.' : 'La IA está eligiendo dados.'
+            : isAiTurn && flow.phase === 'choose-target'
+              ? `La IA sumó ${flow.total} y está eligiendo objetivo.`
+              : turnMessage(flow)}
+        </p>
         {turn.rollCount === 5 && flow.phase !== 'playing' && (
           <p>Los dados del quinto lanzamiento se cuentan automáticamente.</p>
         )}
@@ -234,17 +263,17 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
             <fieldset className="attack-options">
               <legend>Elige el objetivo del ataque</legend>
               <label>
-                <input checked={attackDirection === 'previous'} name="attack-direction" onChange={() => setAttackDirection('previous')} type="radio" />
+                <input checked={attackDirection === 'previous'} disabled={isAiTurn} name="attack-direction" onChange={() => setAttackDirection('previous')} type="radio" />
                 Anterior: {attackTargets(flow).previous.name}
               </label>
               <label>
-                <input checked={attackDirection === 'next'} name="attack-direction" onChange={() => setAttackDirection('next')} type="radio" />
+                <input checked={attackDirection === 'next'} disabled={isAiTurn} name="attack-direction" onChange={() => setAttackDirection('next')} type="radio" />
                 Siguiente: {attackTargets(flow).next.name}
               </label>
             </fieldset>
             <button
               className="start-button"
-              disabled={attackDirection === null}
+              disabled={isAiTurn || attackDirection === null}
               onClick={() => {
                 if (attackDirection === null) throw new Error('Selecciona el objetivo del ataque.')
                 updateFlow(chooseAttack(flow, attackDirection))
@@ -256,7 +285,7 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
           </div>
         )}
         {flow.phase === 'turn-complete' && (
-          <button className="start-button" onClick={advance} type="button">Siguiente turno</button>
+          <button className="start-button" disabled={isAiTurn} onClick={advance} type="button">Siguiente turno</button>
         )}
         <div className="game-exit">
           {confirmExit ? (
@@ -287,6 +316,9 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
                 <span>{player.score} puntos</span>
               </div>
               <div className="scoreboard__tags">
+                {player.kind === 'ai' && (
+                  <span>IA ({player.difficulty === 'easy' ? 'fácil' : player.difficulty === 'hard' ? 'difícil' : 'media'})</span>
+                )}
                 {player.id === currentPlayerId && <span>Actual</span>}
                 {player.id === upcoming?.id && <span>Siguiente</span>}
                 {player.id === lastPlayerId && <span>Último en jugar</span>}

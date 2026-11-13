@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PlayerAvatar } from '../../components/PlayerAvatar'
 import type { GameSummary } from '../../domain/game'
 import { HistoryError, loadHistory } from '../../persistence/history'
 
@@ -42,7 +43,10 @@ export function HistoryPanel() {
                 </p>
                 <ul>
                   {match.players.map((player) => (
-                    <li key={player.id}>{player.name}: {player.score} puntos</li>
+                    <li className="history-item__player" key={player.id}>
+                      <PlayerAvatar avatarId={player.avatarId} />
+                      <span>{player.name}: {player.score} puntos</span>
+                    </li>
                   ))}
                 </ul>
               </li>

@@ -1,11 +1,15 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createGame } from '../../domain/game'
 import { HISTORY_KEY, loadHistory } from '../../persistence/history'
 import { GameBoard } from './GameBoard'
 
 beforeEach(() => localStorage.clear())
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
 
 function die(number: number) {
   return screen.getByRole('button', { name: new RegExp(`^Dado ${number}:`) })
@@ -17,6 +21,56 @@ function keepAll() {
 }
 
 describe('mesa de juego', () => {
+  it('juega automáticamente y guarda una sola vez la victoria en modo estricto', () => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    render(<StrictMode><GameBoard game={createGame([
+      { name: 'IA', avatarId: 'player1', kind: 'ai', difficulty: 'easy' },
+      'Ana',
+    ], 10, 'manual')} onReturn={vi.fn()} /></StrictMode>)
+    expect(screen.getByRole('button', { name: 'Lanzar dados' })).toBeDisabled()
+    for (let step = 0; step < 10; step++) {
+      act(() => vi.advanceTimersByTime(650))
+    }
+    expect(screen.getByRole('status')).toHaveTextContent('Ganador: Ana')
+    expect(loadHistory()).toHaveLength(1)
+  })
+
+  it('pausa la IA al confirmar una salida y continúa si se cancela', () => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    render(<GameBoard game={createGame([
+      { name: 'IA', avatarId: 'player1', kind: 'ai', difficulty: 'easy' },
+      'Ana',
+    ], 20, 'manual')} onReturn={vi.fn()} />)
+    act(() => vi.advanceTimersByTime(650))
+    fireEvent.click(screen.getByRole('button', { name: 'Volver a configurar' }))
+    act(() => vi.advanceTimersByTime(5000))
+    expect(screen.getByText(/Lanzamiento:/)).toHaveTextContent('1 de 5')
+    expect(die(1)).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(screen.getByRole('button', { name: 'Seguir jugando' }))
+    act(() => vi.advanceTimersByTime(650))
+    expect(die(1)).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('resuelve un ataque de la IA y entrega el control al siguiente jugador', () => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    render(<GameBoard game={createGame([
+      { name: 'IA', avatarId: 'player1', kind: 'ai', difficulty: 'hard' },
+      'Ana', 'Luis',
+    ], 10, 'manual')} onReturn={vi.fn()} />)
+    act(() => vi.advanceTimersByTime(650))
+    act(() => vi.advanceTimersByTime(650))
+    expect(screen.getByText(/IA sumó 36/)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Confirmar ataque' })).toBeDisabled()
+    act(() => vi.advanceTimersByTime(650))
+    expect(screen.getByText(/ataque descuenta 6 puntos a Ana/)).toBeVisible()
+    act(() => vi.advanceTimersByTime(1400))
+    expect(screen.getByText(/Juega:/)).toHaveTextContent('Ana')
+    expect(screen.getByRole('button', { name: 'Lanzar dados' })).toBeEnabled()
+  })
+
   it('permite elegir dados, suma la selección y no vuelve a lanzar los apartados', () => {
     const random = vi.spyOn(Math, 'random').mockReturnValue(0.5)
     render(<GameBoard game={createGame(['Ana', 'Luis'], 20, 'manual')} onReturn={vi.fn()} />)
@@ -93,7 +147,10 @@ describe('mesa de juego', () => {
 
   it('muestra el resultado final y lo guarda cuando un jugador se elimina', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0)
-    render(<GameBoard game={createGame(['Ana', 'Luis'], 10, 'manual')} onReturn={vi.fn()} />)
+    render(<GameBoard game={createGame([
+      { name: 'Ana', avatarId: 'player7', kind: 'human' },
+      { name: 'Luis', avatarId: 'player8', kind: 'human' },
+    ], 10, 'manual')} onReturn={vi.fn()} />)
     fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
     keepAll()
     expect(screen.getByText(/Ana queda eliminado/)).toBeInTheDocument()
@@ -102,7 +159,15 @@ describe('mesa de juego', () => {
     expect(screen.getByText(/Marcador inicial:/)).toHaveTextContent('10 puntos')
     expect(screen.getByText(/Turnos jugados:/)).toHaveTextContent('1')
     expect(screen.getByRole('list')).toHaveTextContent('Ana0 puntosEliminadoLuis10 puntosGanador')
-    expect(loadHistory()).toMatchObject([{ winnerId: 'player-2', turnCount: 1 }])
+    const rows = within(screen.getByRole('list')).getAllByRole('listitem')
+    expect(rows[0].querySelector('img')).toHaveAttribute('src', expect.stringContaining('/player7.jpg'))
+    expect(rows[1].querySelector('img')).toHaveAttribute('src', expect.stringContaining('/player8.jpg'))
+    expect(rows[0].querySelector('img')).toHaveAttribute('alt', '')
+    expect(loadHistory()).toMatchObject([{
+      winnerId: 'player-2',
+      turnCount: 1,
+      players: [{ avatarId: 'player7' }, { avatarId: 'player8' }],
+    }])
     expect(screen.queryByRole('button', { name: 'Siguiente turno' })).not.toBeInTheDocument()
   })
 

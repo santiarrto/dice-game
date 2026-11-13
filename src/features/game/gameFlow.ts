@@ -3,6 +3,7 @@ import {
   calculateOutcome,
   createTurn,
   findNeighbor,
+  isAiDifficulty,
   rollDice,
   selectDice,
   turnTotal,
@@ -13,6 +14,7 @@ import {
   type RandomSource,
   type TurnOutcome,
 } from '../../domain/game'
+import { isAvatarId } from '../../domain/avatars'
 
 export interface TurnResult {
   playerId: string
@@ -33,7 +35,11 @@ export function startGame(game: Game): GameFlow {
   if (players.length < 2 || players.length > 8
     || !Number.isInteger(initialScore) || initialScore < 10 || initialScore > 50
     || new Set(players.map((player) => player.id)).size !== players.length
-    || players.some((player) => !player.id.trim() || !player.name.trim() || player.score !== initialScore)
+    || players.some((player) => !player.id.trim() || !player.name.trim()
+      || player.score !== initialScore || !isAvatarId(player.avatarId)
+      || (player.kind !== 'human' && player.kind !== 'ai')
+      || (player.kind === 'ai' && !isAiDifficulty(player.difficulty))
+      || (player.kind === 'human' && player.difficulty !== undefined))
     || game.currentPlayerId !== players[0].id
     || game.lastPlayerId !== null || game.turnCount !== 0
     || turn.phase !== 'ready' || turn.rollCount !== 0 || turn.dice.length !== 6

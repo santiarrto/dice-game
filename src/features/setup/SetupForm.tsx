@@ -1,14 +1,17 @@
 import { useState, type FormEvent } from 'react'
+import { avatarImage } from '../../assets/avatars'
+import { AVATAR_IDS, DEFAULT_AVATAR_ID } from '../../domain/avatars'
+import { isAiDifficulty, type AiDifficulty, type PlayerSetup } from '../../domain/game'
 
 export type GameSetup = {
-  names: string[]
+  players: PlayerSetup[]
   initialScore: number
   order: 'random' | 'manual'
 }
 
-type PlayerDraft = {
+type PlayerDraft = PlayerSetup & {
   id: string
-  name: string
+  difficulty: AiDifficulty
 }
 
 type SetupFormProps = {
@@ -23,14 +26,15 @@ const MAX_SCORE = 50
 export function SetupForm({ onStart }: SetupFormProps) {
   const [playerCount, setPlayerCount] = useState(MIN_PLAYERS)
   const [players, setPlayers] = useState<PlayerDraft[]>([
-    { id: 'player-1', name: '' },
-    { id: 'player-2', name: '' },
+    { id: 'player-1', name: '', avatarId: DEFAULT_AVATAR_ID, kind: 'human', difficulty: 'medium' },
+    { id: 'player-2', name: '', avatarId: DEFAULT_AVATAR_ID, kind: 'human', difficulty: 'medium' },
   ])
   const [nextPlayerId, setNextPlayerId] = useState(3)
   const [initialScore, setInitialScore] = useState('20')
   const [turnOrder, setTurnOrder] = useState<'random' | 'manual'>('random')
   const [formError, setFormError] = useState('')
   const [notice, setNotice] = useState('')
+  const activePlayers = players.slice(0, playerCount)
 
   function updatePlayerCount(count: number) {
     setPlayerCount(count)
@@ -38,7 +42,6 @@ export function SetupForm({ onStart }: SetupFormProps) {
     setFormError('')
 
     if (count <= players.length) {
-      setPlayers(players.slice(0, count))
       return
     }
 
@@ -47,15 +50,18 @@ export function SetupForm({ onStart }: SetupFormProps) {
       (_, index) => ({
         id: `player-${nextPlayerId + index}`,
         name: '',
+        avatarId: DEFAULT_AVATAR_ID,
+        kind: 'human' as const,
+        difficulty: 'medium' as const,
       }),
     )
     setNextPlayerId(nextPlayerId + additionalPlayers.length)
     setPlayers([...players, ...additionalPlayers])
   }
 
-  function updatePlayerName(id: string, name: string) {
+  function updatePlayer(id: string, changes: Partial<PlayerSetup>) {
     setPlayers((currentPlayers) =>
-      currentPlayers.map((player) => (player.id === id ? { ...player, name } : player)),
+      currentPlayers.map((player) => (player.id === id ? { ...player, ...changes } : player)),
     )
     setNotice('')
     setFormError('')
@@ -64,7 +70,7 @@ export function SetupForm({ onStart }: SetupFormProps) {
   function movePlayer(index: number, offset: -1 | 1) {
     setPlayers((currentPlayers) => {
       const nextIndex = index + offset
-      if (nextIndex < 0 || nextIndex >= currentPlayers.length) return currentPlayers
+      if (nextIndex < 0 || nextIndex >= playerCount) return currentPlayers
 
       const reordered = [...currentPlayers]
       const player = reordered[index]
@@ -87,7 +93,12 @@ export function SetupForm({ onStart }: SetupFormProps) {
 
     setFormError('')
     const setup: GameSetup = {
-      names: players.map((player, index) => player.name.trim() || `Jugador ${index + 1}`),
+      players: activePlayers.map((player, index) => ({
+        name: player.name.trim() || `Jugador ${index + 1}`,
+        avatarId: player.avatarId,
+        kind: player.kind,
+        ...(player.kind === 'ai' ? { difficulty: player.difficulty } : {}),
+      })),
       initialScore: score,
       order: turnOrder,
     }
@@ -125,19 +136,75 @@ export function SetupForm({ onStart }: SetupFormProps) {
         </div>
 
         <div className="player-fields">
-          {players.map((player, index) => (
-            <label className="field" key={player.id}>
-              <span>Nombre del jugador {index + 1} <span className="optional">(opcional)</span></span>
-              <input
-                autoComplete="off"
-                maxLength={40}
-                name={player.id}
-                onChange={(event) => updatePlayerName(player.id, event.target.value)}
-                placeholder={`Jugador ${index + 1}`}
-                type="text"
-                value={player.name}
-              />
-            </label>
+          {activePlayers.map((player, index) => (
+            <div className="player-setup" key={player.id}>
+              <label className="field">
+                <span>Nombre del jugador {index + 1} <span className="optional">(opcional)</span></span>
+                <input
+                  autoComplete="off"
+                  maxLength={40}
+                  name={player.id}
+                  onChange={(event) => updatePlayer(player.id, { name: event.target.value })}
+                  placeholder={`Jugador ${index + 1}`}
+                  type="text"
+                  value={player.name}
+                />
+              </label>
+              <label className="field">
+                <span>Tipo de jugador {index + 1}</span>
+                <select
+                  value={player.kind}
+                  onChange={(event) => {
+                    const kind: string = event.target.value
+                    if (kind !== 'human' && kind !== 'ai') throw new Error('El tipo de jugador no es válido.')
+                    updatePlayer(player.id, { kind })
+                  }}
+                >
+                  <option value="human">Persona</option>
+                  <option value="ai">IA</option>
+                </select>
+              </label>
+              {player.kind === 'ai' && (
+                <label className="field">
+                  <span>Dificultad de IA del jugador {index + 1}</span>
+                  <select
+                    value={player.difficulty}
+                    onChange={(event) => {
+                      const difficulty: string = event.target.value
+                      if (!isAiDifficulty(difficulty)) throw new Error('La dificultad de IA no es válida.')
+                      updatePlayer(player.id, { difficulty })
+                    }}
+                  >
+                    <option value="easy">Fácil</option>
+                    <option value="medium">Media</option>
+                    <option value="hard">Difícil</option>
+                  </select>
+                </label>
+              )}
+              <details className="avatar-picker">
+                <summary>
+                  <img src={avatarImage(player.avatarId)} alt="" />
+                  <span>Avatar del jugador {index + 1}: {AVATAR_IDS.indexOf(player.avatarId) + 1}</span>
+                </summary>
+                <fieldset className="avatar-picker__options">
+                  <legend>Elige el avatar del jugador {index + 1}</legend>
+                  {AVATAR_IDS.map((avatarId, avatarIndex) => (
+                    <label className="avatar-picker__option" key={avatarId}>
+                      <input
+                        aria-label={`Avatar ${avatarIndex + 1} del jugador ${index + 1}`}
+                        checked={player.avatarId === avatarId}
+                        name={`avatar-${player.id}`}
+                        onChange={() => updatePlayer(player.id, { avatarId })}
+                        type="radio"
+                        value={avatarId}
+                      />
+                      <img src={avatarImage(avatarId)} alt="" loading="lazy" />
+                      <span>{avatarIndex + 1}</span>
+                    </label>
+                  ))}
+                </fieldset>
+              </details>
+            </div>
           ))}
         </div>
       </section>
@@ -210,7 +277,7 @@ export function SetupForm({ onStart }: SetupFormProps) {
 
           {turnOrder === 'manual' && (
             <ol className="order-list" aria-label="Orden de los turnos">
-              {players.map((player, index) => {
+              {activePlayers.map((player, index) => {
                 const playerName = player.name.trim() || `Jugador ${index + 1}`
                 return (
                   <li className="order-list__item" key={player.id}>
@@ -227,7 +294,7 @@ export function SetupForm({ onStart }: SetupFormProps) {
                       </button>
                       <button
                         aria-label={`Bajar ${playerName}`}
-                        disabled={index === players.length - 1}
+                        disabled={index === activePlayers.length - 1}
                         onClick={() => movePlayer(index, 1)}
                         type="button"
                       >

@@ -18,6 +18,23 @@ function rollAndKeepAll(flow: GameFlow, randomValue: number): GameFlow {
 }
 
 describe('flujo de la partida', () => {
+  it('admite avatares repetidos y rechaza identificadores inválidos al iniciar', () => {
+    const game = createGame(['Ana', 'Luis'], 20, 'manual')
+    expect(startGame(game).game.players.map((player) => player.avatarId)).toEqual(['player1', 'player1'])
+
+    const customized = {
+      ...game,
+      players: game.players.map((player) => ({ ...player, avatarId: 'player20' as const })),
+    }
+    const afterTurn = rollAndKeepAll(startGame(customized), 0.7)
+    expect(afterTurn.game.players.map((player) => player.avatarId)).toEqual(['player20', 'player20'])
+
+    const invalidPlayer = { ...game.players[0] }
+    Reflect.set(invalidPlayer, 'avatarId', 'player21')
+    expect(() => startGame({ ...game, players: [invalidPlayer, game.players[1]] }))
+      .toThrow('configuración inicial')
+  })
+
   it('valida el estado inicial y rechaza acciones fuera de orden', () => {
     const game = createGame(['Ana', 'Luis'], 20, 'manual')
     const start = startGame(game)

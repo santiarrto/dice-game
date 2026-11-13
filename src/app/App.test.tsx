@@ -1,16 +1,18 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { StrictMode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { GameSummary } from '../domain/game'
 import { HISTORY_KEY, loadHistory, saveHistory } from '../persistence/history'
+import * as gameDomain from '../domain/game'
 import { App } from './App'
 
-const completedGame = {
+const completedGame: GameSummary = {
   id: 'partida-1',
   finishedAt: '2026-01-01T10:00:00.000Z',
   initialScore: 20,
   players: [
-    { id: 'a', name: 'Ana', score: 7 },
-    { id: 'b', name: 'Luis', score: 0 },
+    { id: 'a', name: 'Ana', score: 7, avatarId: 'player1' },
+    { id: 'b', name: 'Luis', score: 0, avatarId: 'player1' },
   ],
   winnerId: 'a',
   turnCount: 4,
@@ -52,8 +54,32 @@ describe('App', () => {
     expect(screen.getByRole('spinbutton', { name: 'Marcador por jugador' })).toHaveValue(35)
   })
 
+  it('inicia con los avatares, tipos y dificultades seleccionados', () => {
+    const createGame = vi.spyOn(gameDomain, 'createGame')
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Tipo de jugador 1'), { target: { value: 'ai' } })
+    fireEvent.click(screen.getByText('Avatar del jugador 1: 1'))
+    fireEvent.click(screen.getByRole('radio', { name: 'Avatar 7 del jugador 1' }))
+    fireEvent.click(screen.getByRole('radio', { name: /Elegir manualmente/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+
+    expect(createGame.mock.results[0].value.players).toMatchObject([
+      { avatarId: 'player7', kind: 'ai', difficulty: 'medium' },
+      { avatarId: 'player1', kind: 'human' },
+    ])
+    const board = screen.getByRole('region', { name: 'Mesa de juego' })
+    expect(within(board).getByText('La IA juega automáticamente.')).toBeVisible()
+    expect(screen.getByText('IA (media)')).toBeVisible()
+  })
+
   it('muestra en la bienvenida un resultado persistido al volver a cargar', () => {
-    saveHistory(completedGame)
+    saveHistory({
+      ...completedGame,
+      players: completedGame.players.map((player, index) => ({
+        ...player,
+        avatarId: index === 0 ? 'player7' : 'player8',
+      })),
+    })
     const { unmount } = render(<App />)
     unmount()
     render(<App />)
@@ -61,6 +87,47 @@ describe('App', () => {
     expect(within(history).getByText('Ganador:').parentElement).toHaveTextContent('Ana')
     expect(within(history).getByText('Ana: 7 puntos')).toBeInTheDocument()
     expect(within(history).getByText('Luis: 0 puntos')).toBeInTheDocument()
+    const ana = within(history).getByText('Ana: 7 puntos').closest('li')
+    const luis = within(history).getByText('Luis: 0 puntos').closest('li')
+    expect(ana?.querySelector('img')).toHaveAttribute('src', expect.stringContaining('/player7.jpg'))
+    expect(luis?.querySelector('img')).toHaveAttribute('src', expect.stringContaining('/player8.jpg'))
+    const image = ana?.querySelector('img')
+    if (!ana || !image) throw new Error('No se encontró el avatar de Ana.')
+    fireEvent.error(image)
+    expect(image).toHaveAttribute('src', expect.stringContaining('/player1.jpg'))
+    expect(within(ana).getByText(/se muestra el predeterminado/)).toBeVisible()
+    fireEvent.error(image)
+    expect(within(ana).getByText('Avatar no disponible.')).toBeVisible()
+    expect(within(ana).getByText('Ana: 7 puntos')).toBeVisible()
+  })
+
+  it('muestra el avatar predeterminado para registros antiguos y avisa si fallan las imágenes', () => {
+    const legacy = {
+      ...completedGame,
+      players: completedGame.players.map(({ id, name, score }) => ({ id, name, score })),
+    }
+    localStorage.setItem(HISTORY_KEY, JSON.stringify({ version: 1, matches: [legacy] }))
+    render(<App />)
+    const history = screen.getByRole('region', { name: 'Historial' })
+    const row = within(history).getByText('Ana: 7 puntos').closest('li')
+    if (!row) throw new Error('No se encontró el jugador en el historial.')
+    const image = row.querySelector('img')
+    if (!image) throw new Error('No se encontró el avatar.')
+    expect(image).toHaveAttribute('src', expect.stringContaining('/player1.jpg'))
+    fireEvent.error(image)
+    expect(within(row).getByText('Avatar no disponible.')).toBeVisible()
+    expect(within(row).getByText('Ana: 7 puntos')).toBeVisible()
+  })
+
+  it('avisa y conserva el historial si un avatar de versión 2 es inválido', () => {
+    const invalid = JSON.stringify({
+      version: 2,
+      matches: [{ ...completedGame, players: completedGame.players.map((player) => ({ ...player, avatarId: 'player21' })) }],
+    })
+    localStorage.setItem(HISTORY_KEY, invalid)
+    render(<App />)
+    expect(screen.getByRole('alert')).toHaveTextContent('datos inválidos')
+    expect(localStorage.getItem(HISTORY_KEY)).toBe(invalid)
   })
 
   it('actualiza el historial al regresar a la bienvenida', () => {

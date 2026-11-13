@@ -36,7 +36,11 @@ describe('SetupForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
 
     expect(onStart).toHaveBeenCalledWith({
-      names: ['Luis', 'Ana', 'Eva'],
+      players: [
+        { name: 'Luis', avatarId: 'player1', kind: 'human' },
+        { name: 'Ana', avatarId: 'player1', kind: 'human' },
+        { name: 'Eva', avatarId: 'player1', kind: 'human' },
+      ],
       initialScore: 20,
       order: 'manual',
     })
@@ -65,7 +69,10 @@ describe('SetupForm', () => {
     fireEvent.change(scoreInput, { target: { value: '10' } })
     fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
     expect(onStart).toHaveBeenNthCalledWith(1, {
-      names: ['Jugador 1', 'Jugador 2'],
+      players: [
+        { name: 'Jugador 1', avatarId: 'player1', kind: 'human' },
+        { name: 'Jugador 2', avatarId: 'player1', kind: 'human' },
+      ],
       initialScore: 10,
       order: 'random',
     })
@@ -73,9 +80,46 @@ describe('SetupForm', () => {
     fireEvent.change(scoreInput, { target: { value: '50' } })
     fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
     expect(onStart).toHaveBeenNthCalledWith(2, {
-      names: ['Jugador 1', 'Jugador 2'],
+      players: [
+        { name: 'Jugador 1', avatarId: 'player1', kind: 'human' },
+        { name: 'Jugador 2', avatarId: 'player1', kind: 'human' },
+      ],
       initialScore: 50,
       order: 'random',
+    })
+  })
+
+  it('conserva avatares y tipos al cambiar cantidad y orden, y admite avatares repetidos', () => {
+    const onStart = vi.fn()
+    render(<SetupForm onStart={onStart} />)
+    const count = screen.getByRole('combobox', { name: 'Cantidad de jugadores' })
+    fireEvent.change(count, { target: { value: '3' } })
+    fireEvent.change(screen.getByLabelText(/Nombre del jugador 1/), { target: { value: 'Ana' } })
+    fireEvent.change(screen.getByLabelText(/Nombre del jugador 2/), { target: { value: 'Luis' } })
+    fireEvent.change(screen.getByLabelText(/Nombre del jugador 3/), { target: { value: 'Eva' } })
+    fireEvent.change(screen.getByLabelText('Tipo de jugador 1'), { target: { value: 'ai' } })
+    fireEvent.change(screen.getByLabelText('Dificultad de IA del jugador 1'), { target: { value: 'hard' } })
+
+    fireEvent.click(screen.getByText('Avatar del jugador 1: 1'))
+    fireEvent.click(screen.getByRole('radio', { name: 'Avatar 20 del jugador 1' }))
+    fireEvent.click(screen.getByText('Avatar del jugador 3: 1'))
+    fireEvent.click(screen.getByRole('radio', { name: 'Avatar 20 del jugador 3' }))
+    fireEvent.change(count, { target: { value: '2' } })
+    fireEvent.change(count, { target: { value: '3' } })
+    expect(screen.getByLabelText(/Nombre del jugador 3/)).toHaveValue('Eva')
+    expect(screen.getByText('Avatar del jugador 3: 20')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('radio', { name: /Elegir manualmente/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Bajar Ana' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+    expect(onStart).toHaveBeenCalledWith({
+      players: [
+        { name: 'Luis', avatarId: 'player1', kind: 'human' },
+        { name: 'Ana', avatarId: 'player20', kind: 'ai', difficulty: 'hard' },
+        { name: 'Eva', avatarId: 'player20', kind: 'human' },
+      ],
+      initialScore: 20,
+      order: 'manual',
     })
   })
 

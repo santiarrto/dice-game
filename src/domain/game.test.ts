@@ -15,8 +15,8 @@ import {
 describe('configuración de la partida', () => {
   it('valida participantes y marcador, y permite los límites', () => {
     expect(createGame(['Ana', ''], 10, 'manual').players).toEqual([
-      { id: 'player-1', name: 'Ana', score: 10 },
-      { id: 'player-2', name: 'Jugador 2', score: 10 },
+      { id: 'player-1', name: 'Ana', score: 10, avatarId: 'player1', kind: 'human' },
+      { id: 'player-2', name: 'Jugador 2', score: 10, avatarId: 'player1', kind: 'human' },
     ])
     expect(createGame(Array(8).fill('Ana'), 50, 'manual').players).toHaveLength(8)
     expect(createGame(['Ana', 'Luis'], undefined, 'manual').initialScore).toBe(20)
@@ -34,6 +34,25 @@ describe('configuración de la partida', () => {
     expect(random.players.map((player) => player.name)).toEqual(['Luis', 'Eva', 'Ana'])
     expect(random.currentPlayerId).toBe(random.players[0].id)
     expect(() => createGame(['Ana', 'Luis'], 20, 'random', () => 1)).toThrow()
+  })
+
+  it('conserva los avatares y tipos al sortear y rechaza configuraciones inválidas', () => {
+    const participants = [
+      { name: 'Ana', avatarId: 'player20' as const, kind: 'ai' as const, difficulty: 'hard' as const },
+      { name: 'Luis', avatarId: 'player2' as const, kind: 'human' as const },
+    ]
+    const game = createGame(participants, 20, 'random', () => 0)
+    expect(game.players).toMatchObject([participants[1], participants[0]])
+
+    const invalid = { ...participants[0] }
+    Reflect.set(invalid, 'kind', 'invalid')
+    expect(() => createGame([invalid, participants[1]], 20, 'manual')).toThrow('configuración del jugador')
+    Reflect.set(invalid, 'kind', 'ai')
+    Reflect.set(invalid, 'difficulty', 'invalid')
+    expect(() => createGame([invalid, participants[1]], 20, 'manual')).toThrow('configuración del jugador')
+    Reflect.set(invalid, 'difficulty', 'hard')
+    Reflect.set(invalid, 'avatarId', 'player21')
+    expect(() => createGame([invalid, participants[1]], 20, 'manual')).toThrow('configuración del jugador')
   })
 })
 

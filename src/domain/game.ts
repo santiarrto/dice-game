@@ -1,10 +1,24 @@
+import { DEFAULT_AVATAR_ID, isAvatarId, type AvatarId } from './avatars'
+
 export type RandomSource = () => number
 export type Direction = 'next' | 'previous'
 export type DieValue = 1 | 2 | 3 | 4 | 5 | 6
+export type PlayerKind = 'human' | 'ai'
+export type AiDifficulty = 'easy' | 'medium' | 'hard'
 
-export interface Player {
-  id: string
+export function isAiDifficulty(value: unknown): value is AiDifficulty {
+  return value === 'easy' || value === 'medium' || value === 'hard'
+}
+
+export interface PlayerSetup {
   name: string
+  avatarId: AvatarId
+  kind: PlayerKind
+  difficulty?: AiDifficulty
+}
+
+export interface Player extends PlayerSetup {
+  id: string
   score: number
 }
 
@@ -33,9 +47,10 @@ export interface GameSummary {
   id: string
   finishedAt: string
   initialScore: number
-  players: readonly Player[]
+  players: readonly Pick<Player, 'id' | 'name' | 'score' | 'avatarId'>[]
   winnerId: string
   turnCount: number
+  ranking?: readonly string[]
 }
 
 export type TurnOutcome =
@@ -65,12 +80,12 @@ export function shufflePlayers(players: readonly Player[], random: RandomSource 
 }
 
 export function createGame(
-  names: readonly string[],
+  participants: readonly (string | PlayerSetup)[],
   initialScore = 20,
   order: 'manual' | 'random' = 'random',
   random: RandomSource = Math.random,
 ): Game {
-  if (names.length < 2 || names.length > 8) {
+  if (participants.length < 2 || participants.length > 8) {
     throw new RangeError('La partida debe tener entre 2 y 8 jugadores.')
   }
   if (!Number.isInteger(initialScore) || initialScore < 10 || initialScore > 50) {
@@ -79,11 +94,25 @@ export function createGame(
   if (order !== 'manual' && order !== 'random') {
     throw new RangeError('El orden debe ser manual o aleatorio.')
   }
-  const players = names.map((name, index) => ({
-    id: `player-${index + 1}`,
-    name: name.trim() || `Jugador ${index + 1}`,
-    score: initialScore,
-  }))
+  const players: Player[] = participants.map((participant, index) => {
+    const setup = typeof participant === 'string'
+      ? { name: participant, avatarId: DEFAULT_AVATAR_ID, kind: 'human' }
+      : participant
+    if (typeof setup.name !== 'string' || !isAvatarId(setup.avatarId)
+      || (setup.kind !== 'human' && setup.kind !== 'ai')
+      || (setup.kind === 'ai' && (!('difficulty' in setup) || !isAiDifficulty(setup.difficulty)))
+      || (setup.kind === 'human' && 'difficulty' in setup && setup.difficulty !== undefined)) {
+      throw new Error('La configuración del jugador no es válida.')
+    }
+    return {
+      id: `player-${index + 1}`,
+      name: setup.name.trim() || `Jugador ${index + 1}`,
+      score: initialScore,
+      avatarId: setup.avatarId,
+      kind: setup.kind,
+      ...('difficulty' in setup && setup.difficulty !== undefined ? { difficulty: setup.difficulty } : {}),
+    }
+  })
   const orderedPlayers = order === 'random' ? shufflePlayers(players, random) : players
   return {
     players: orderedPlayers,

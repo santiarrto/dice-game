@@ -16,8 +16,8 @@ export function App() {
         <p>{game ? 'Lanza los dados y lucha por sobrevivir.' : 'Prepara la partida y decide quién va primero.'}</p>
       </header>
       <div hidden={game !== null}>
-        <SetupForm onStart={({ names, initialScore, order }) => {
-          setGame(createGame(names, initialScore, order))
+        <SetupForm onStart={({ players, initialScore, order }) => {
+          setGame(createGame(players, initialScore, order))
         }} />
         {game === null && <HistoryPanel />}
       </div>
