@@ -1,6 +1,12 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render as renderTesting, screen, within } from '@testing-library/react'
+import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { LanguageProvider } from '../../i18n'
 import { SetupForm } from './SetupForm'
+
+function render(element: ReactElement) {
+  return renderTesting(<LanguageProvider language="es">{element}</LanguageProvider>)
+}
 
 describe('SetupForm', () => {
   it('empieza con dos jugadores, marcador 20 y orden aleatorio', () => {

@@ -35,9 +35,19 @@ interface LoadedHistory {
   needsMigration: boolean
 }
 
+const HISTORY_ERRORS = {
+  storageUnavailable: 'El almacenamiento local no está disponible.',
+  readFailed: 'No se pudo leer el historial local.',
+  invalidData: 'El historial guardado contiene datos inválidos.',
+  unsupportedVersion: 'La versión del historial guardado no es compatible.',
+  writeFailed: 'No se pudo guardar el historial local.',
+  invalidSummary: 'No se puede guardar un resumen de partida inválido.',
+  duplicateId: 'Ya existe una partida diferente con ese identificador.',
+} as const
+
 export class HistoryError extends Error {
-  constructor(message: string, options?: ErrorOptions) {
-    super(message, options)
+  constructor(readonly code: keyof typeof HISTORY_ERRORS, options?: ErrorOptions) {
+    super(HISTORY_ERRORS[code], options)
     this.name = 'HistoryError'
   }
 }
@@ -154,7 +164,7 @@ function browserStorage(): Storage {
   try {
     return window.localStorage
   } catch (cause) {
-    throw new HistoryError('El almacenamiento local no está disponible.', { cause })
+    throw new HistoryError('storageUnavailable', { cause })
   }
 }
 
@@ -163,7 +173,7 @@ function readHistory(storage: Storage): LoadedHistory {
   try {
     raw = storage.getItem(HISTORY_KEY)
   } catch (cause) {
-    throw new HistoryError('No se pudo leer el historial local.', { cause })
+    throw new HistoryError('readFailed', { cause })
   }
   if (raw === null) return { matches: [], needsMigration: false }
 
@@ -171,20 +181,20 @@ function readHistory(storage: Storage): LoadedHistory {
   try {
     data = JSON.parse(raw)
   } catch (cause) {
-    throw new HistoryError('El historial guardado contiene datos inválidos.', { cause })
+    throw new HistoryError('invalidData', { cause })
   }
   if (!isRecord(data) || !('version' in data)) {
-    throw new HistoryError('El historial guardado contiene datos inválidos.')
+    throw new HistoryError('invalidData')
   }
   if (data.version !== LEGACY_HISTORY_VERSION && data.version !== HISTORY_VERSION) {
-    throw new HistoryError('La versión del historial guardado no es compatible.')
+    throw new HistoryError('unsupportedVersion')
   }
   if (!Array.isArray(data.matches) || data.matches.length > HISTORY_LIMIT) {
-    throw new HistoryError('El historial guardado contiene datos inválidos.')
+    throw new HistoryError('invalidData')
   }
   if (data.version === LEGACY_HISTORY_VERSION) {
     if (!data.matches.every(isLegacySummary) || hasDuplicateIds(data.matches)) {
-      throw new HistoryError('El historial guardado contiene datos inválidos.')
+      throw new HistoryError('invalidData')
     }
     return {
       matches: sortHistory(data.matches.map(migrateSummary)),
@@ -192,7 +202,7 @@ function readHistory(storage: Storage): LoadedHistory {
     }
   }
   if (!data.matches.every(isGameSummary) || hasDuplicateIds(data.matches)) {
-    throw new HistoryError('El historial guardado contiene datos inválidos.')
+    throw new HistoryError('invalidData')
   }
   return { matches: sortHistory(data.matches.map(copySummary)), needsMigration: false }
 }
@@ -205,13 +215,13 @@ function writeHistory(matches: readonly GameSummary[], storage: Storage): void {
   try {
     storage.setItem(HISTORY_KEY, JSON.stringify({ version: HISTORY_VERSION, matches }))
   } catch (cause) {
-    throw new HistoryError('No se pudo guardar el historial local.', { cause })
+    throw new HistoryError('writeFailed', { cause })
   }
 }
 
 export function saveHistory(summary: GameSummary, storage: Storage = browserStorage()): void {
   if (!isGameSummary(summary)) {
-    throw new HistoryError('No se puede guardar un resumen de partida inválido.')
+    throw new HistoryError('invalidSummary')
   }
   const { matches: history, needsMigration } = readHistory(storage)
   const existing = history.find((match) => match.id === summary.id)
@@ -231,7 +241,7 @@ export function saveHistory(summary: GameSummary, storage: Storage = browserStor
         && existing.ranking.length === summary.ranking.length
         && existing.ranking.every((id, index) => id === summary.ranking?.[index]))
     if (!same) {
-      throw new HistoryError('Ya existe una partida diferente con ese identificador.')
+      throw new HistoryError('duplicateId')
     }
     if (needsMigration) writeHistory(history, storage)
     return

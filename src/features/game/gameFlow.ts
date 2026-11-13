@@ -28,7 +28,7 @@ export type GameFlow =
   | { phase: 'playing'; game: Game }
   | { phase: 'choose-target'; game: Game; total: number; points: number }
   | { phase: 'turn-complete'; game: Game; result: TurnResult }
-  | { phase: 'finished'; game: Game; result: TurnResult; winnerId: string }
+  | { phase: 'finished'; game: Game; result: TurnResult; winnerId: string; ranking: readonly string[] }
 
 export function startGame(game: Game): GameFlow {
   const { players, turn, initialScore } = game
@@ -41,7 +41,7 @@ export function startGame(game: Game): GameFlow {
       || (player.kind === 'ai' && !isAiDifficulty(player.difficulty))
       || (player.kind === 'human' && player.difficulty !== undefined))
     || game.currentPlayerId !== players[0].id
-    || game.lastPlayerId !== null || game.turnCount !== 0
+    || game.lastPlayerId !== null || game.turnCount !== 0 || game.eliminationOrder.length !== 0
     || turn.phase !== 'ready' || turn.rollCount !== 0 || turn.dice.length !== 6
     || turn.dice.some((die, index) => die.id !== index || die.value !== null || die.locked)) {
     throw new Error('La configuración inicial de la partida no es válida.')
@@ -51,9 +51,13 @@ export function startGame(game: Game): GameFlow {
 
 function finishTurn(game: Game, total: number, direction?: Direction): GameFlow {
   const { players, outcome, targetId } = applyOutcome(game.players, game.currentPlayerId, total, direction)
+  const eliminated = targetId !== null && players.some((player) => player.id === targetId && player.score === 0)
   const updatedGame: Game = {
     ...game,
     players,
+    eliminationOrder: eliminated && targetId !== null
+      ? [...game.eliminationOrder, targetId]
+      : game.eliminationOrder,
     lastPlayerId: game.currentPlayerId,
     turnCount: game.turnCount + 1,
   }
@@ -66,7 +70,13 @@ function finishTurn(game: Game, total: number, direction?: Direction): GameFlow 
   }
   const winningPlayer = winner(players)
   if (winningPlayer) {
-    return { phase: 'finished', game: updatedGame, result, winnerId: winningPlayer.id }
+    return {
+      phase: 'finished',
+      game: updatedGame,
+      result,
+      winnerId: winningPlayer.id,
+      ranking: [winningPlayer.id, ...[...updatedGame.eliminationOrder].reverse()],
+    }
   }
   return { phase: 'turn-complete', game: updatedGame, result }
 }

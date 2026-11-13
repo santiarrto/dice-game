@@ -2,11 +2,11 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> ✅ **Estado del proyecto:** MVP validado. La Etapa 2 está en curso: se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente y los avatares aparecen en resultados e historial. Los avatares en el tablero durante la partida, el ranking, los idiomas, el logo y las páginas informativas están pendientes.
+> ✅ **Estado del proyecto:** MVP validado. La Etapa 2 está en curso: se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente, los resultados y el historial muestran avatares y clasificación final, y la interfaz admite inglés y español. El logo también aparece en la aplicación y en la pestaña. Los avatares en el tablero durante la partida y las páginas informativas están pendientes.
 
 Cada participante IA tiene una dificultad: fácil elige acciones legales al azar; media busca acercarse a 30; y difícil considera los marcadores, la supervivencia y los objetivos de ataque. Las dos últimas usan una estimación del resultado suponiendo un lanzamiento futuro de los dados restantes, no una optimización exhaustiva de todos los lanzamientos posibles.
 
-La página de contacto abrirá un mensaje de correo dirigido a `santiarrto@gmail.com`; no se almacenarán ni enviarán sugerencias mediante un backend. La integración del nuevo logo depende de recibir el archivo proporcionado por el dueño del producto. El alcance detallado está en [PLANNING.md](./PLANNING.md) y sus tareas en [TASKS.md](./TASKS.md).
+La página de contacto abrirá un mensaje de correo dirigido a `santiarrto@gmail.com`; no se almacenarán ni enviarán sugerencias mediante un backend. El logo y el favicon usan versiones optimizadas de la imagen proporcionada en `src/assets/icon.jpg`. El alcance detallado está en [PLANNING.md](./PLANNING.md) y sus tareas en [TASKS.md](./TASKS.md).
 
 ## 🚀 Requisitos
 
@@ -47,9 +47,13 @@ npm run test:e2e            # Probar partidas completas en escritorio y móvil
 
 La bienvenida muestra hasta **10 partidas terminadas** guardadas en el navegador, con su ganador y marcadores finales. Los datos no se sincronizan entre dispositivos y pueden borrarse al limpiar el almacenamiento del navegador. La partida en curso no se guarda.
 
-El historial utiliza un formato versionado. Los registros de versión 1 se migran al leerlos y reciben el avatar predeterminado `player1`; los nuevos registros usan la versión 2, que conserva los avatares y admite la futura clasificación final. Si una imagen no carga, se muestra el avatar predeterminado y un aviso. Si los datos están dañados, la versión no es compatible o el almacenamiento no está disponible, se muestra un aviso y se puede seguir configurando una partida; los datos existentes no se sobrescriben.
+El historial utiliza un formato versionado. Los registros de versión 1 se migran al leerlos y reciben el avatar predeterminado `player1`; los nuevos registros usan la versión 2, que conserva los avatares y la clasificación final. Los registros anteriores sin clasificación siguen disponibles y se indica que su clasificación no está disponible. Si una imagen no carga, se muestra el avatar predeterminado y un aviso. Si los datos están dañados, la versión no es compatible o el almacenamiento no está disponible, se muestra un aviso y se puede seguir configurando una partida; los datos existentes no se sobrescriben.
 
 Al finalizar una partida se muestra el ganador y el resumen, y se intenta guardar el resultado automáticamente. Si no se puede guardar, el resumen permanece visible y se informa del error.
+
+## 🌐 Idioma
+
+La interfaz aparece inicialmente en inglés. El selector permite cambiar a español o volver a inglés en cualquier momento, incluso durante una partida. La preferencia se guarda en el navegador en un formato versionado; si no se puede leer o guardar, se muestra un aviso y se puede seguir jugando. Un valor inválido vuelve a inglés sin modificar el historial.
 
 ## 🏁 Objetivo
 
@@ -127,7 +131,7 @@ Si al quinto lanzamiento todavía quedan dados por tirar, el turno termina allí
 
 ## 🏆 Fin de la partida
 
-La partida termina cuando solo queda una persona sin eliminar. Esa persona es la ganadora.
+La partida termina cuando solo queda una persona sin eliminar. Esa persona es la ganadora y ocupa el primer lugar de la clasificación; los demás se ordenan de forma inversa a su eliminación, por lo que quien salió primero ocupa el último lugar.
 
 ## 🗂️ Estructura del proyecto
 
@@ -155,9 +159,12 @@ dice-game/
 └── src/
     ├── index.html        # Entrada HTML de Vite
     ├── main.tsx          # Entrada de React
+    ├── i18n.tsx          # Traducciones de la interfaz
     ├── test-setup.ts     # Configuración de pruebas
     ├── assets/
     │   ├── icon.jpg
+    │   ├── logo-128.jpg  # Logo optimizado para la aplicación
+    │   ├── favicon-32.png # Favicon optimizado
     │   ├── avatars.ts    # Catálogo tipado de imágenes de avatar
     │   └── player-icons/ # Imágenes locales de avatares
     ├── app/              # Composición de la aplicación y su prueba

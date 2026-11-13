@@ -158,7 +158,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## Etapa 2 — Personalización y funcionalidades ampliadas
 
-Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decisiones están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas. El logo nuevo debe ser proporcionado por el dueño del producto antes de completar T18.
+Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decisiones están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas. El logo de T18 fue proporcionado por el dueño del producto.
 
 ## T11 — Definir catálogo y modelo de avatares
 
@@ -230,7 +230,7 @@ Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T16 — Crear y guardar la clasificación final
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada.
 
 **Dependencias:** T06 y T13.
 
@@ -243,7 +243,7 @@ Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T17 — Añadir inglés y español
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada para la interfaz existente. Las páginas informativas se crearán en ambos idiomas en T19 y T20.
 
 **Dependencias:** T10.
 
@@ -256,7 +256,7 @@ Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T18 — Integrar logo y favicon
 
-**Estado:** ⚪ No asignada. Requiere que el dueño del producto proporcione el archivo de logo.
+**Estado:** ✅ Completada. Se usan versiones optimizadas de `src/assets/icon.jpg`.
 
 **Dependencias:** T10 y entrega del recurso de logo.
 

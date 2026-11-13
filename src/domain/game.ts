@@ -39,6 +39,7 @@ export interface Game {
   initialScore: number
   currentPlayerId: string
   lastPlayerId: string | null
+  eliminationOrder: readonly string[]
   turn: Turn
   turnCount: number
 }
@@ -119,6 +120,7 @@ export function createGame(
     initialScore,
     currentPlayerId: orderedPlayers[0].id,
     lastPlayerId: null,
+    eliminationOrder: [],
     turn: createTurn(),
     turnCount: 0,
   }

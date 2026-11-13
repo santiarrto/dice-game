@@ -41,6 +41,7 @@ describe('flujo de la partida', () => {
     expect(start.phase).toBe('playing')
     expect(nextPlayer(start)?.name).toBe('Luis')
     expect(() => startGame({ ...game, currentPlayerId: 'player-2' })).toThrow()
+    expect(() => startGame({ ...game, eliminationOrder: ['player-1'] })).toThrow()
     expect(() => advanceTurn(start)).toThrow()
     expect(() => chooseAttack(start, 'next')).toThrow()
     expect(() => selectGameDice(start, [0])).toThrow()
@@ -142,5 +143,39 @@ describe('flujo de la partida', () => {
     expect(flow.game.players.map((player) => player.score)).toEqual([0, 10])
     expect(flow.game.turnCount).toBe(1)
     expect(nextPlayer(flow)).toBeNull()
+  })
+
+  it('registra eliminaciones por ataque y pérdida propia en orden, sin repetirlas', () => {
+    let flow = startGame(createGame(['Ana', 'Luis', 'Eva', 'Sol'], 10, 'manual'))
+    flow = chooseAttack(rollAndKeepAll(flow, 0.99), 'previous')
+    expect(flow.game.eliminationOrder).toEqual([])
+    flow = advanceTurn(flow)
+    flow = rollAndKeepAll(flow, 0.8)
+    expect(flow.game.eliminationOrder).toEqual([])
+    flow = advanceTurn(flow)
+    flow = chooseAttack(rollAndKeepAll(flow, 0.99), 'next')
+    expect(flow.game.eliminationOrder).toEqual(['player-4'])
+    flow = advanceTurn(flow)
+    flow = rollAndKeepAll(flow, 0)
+    expect(flow.game.eliminationOrder).toEqual(['player-4', 'player-1'])
+    flow = advanceTurn(flow)
+    flow = rollAndKeepAll(flow, 0)
+
+    expect(flow.phase).toBe('finished')
+    if (flow.phase !== 'finished') throw new Error('La partida debería haber terminado.')
+    expect(flow.game.eliminationOrder).toEqual(['player-4', 'player-1', 'player-2'])
+    expect(flow.ranking).toEqual(['player-3', 'player-2', 'player-1', 'player-4'])
+    expect(() => advanceTurn(flow)).toThrow()
+  })
+
+  it('clasifica a ocho participantes aunque compartan el mismo nombre', () => {
+    let flow = startGame(createGame(Array<string>(8).fill('Jugador'), 10, 'manual'))
+    for (let turn = 0; turn < 7; turn++) {
+      flow = rollAndKeepAll(flow, 0)
+      if (turn < 6) flow = advanceTurn(flow)
+    }
+    expect(flow.phase).toBe('finished')
+    if (flow.phase !== 'finished') throw new Error('La partida debería haber terminado.')
+    expect(flow.ranking).toEqual(Array.from({ length: 8 }, (_, index) => `player-${8 - index}`))
   })
 })

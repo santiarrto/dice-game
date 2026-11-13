@@ -1,9 +1,14 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { StrictMode } from 'react'
+import { act, fireEvent, render as renderTesting, screen, within } from '@testing-library/react'
+import { StrictMode, type ReactElement } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createGame } from '../../domain/game'
 import { HISTORY_KEY, loadHistory } from '../../persistence/history'
+import { LanguageProvider } from '../../i18n'
 import { GameBoard } from './GameBoard'
+
+function render(element: ReactElement) {
+  return renderTesting(<LanguageProvider language="es">{element}</LanguageProvider>)
+}
 
 beforeEach(() => localStorage.clear())
 afterEach(() => {
@@ -158,14 +163,15 @@ describe('mesa de juego', () => {
     expect(screen.getByText(/Resultado guardado/)).toBeInTheDocument()
     expect(screen.getByText(/Marcador inicial:/)).toHaveTextContent('10 puntos')
     expect(screen.getByText(/Turnos jugados:/)).toHaveTextContent('1')
-    expect(screen.getByRole('list')).toHaveTextContent('Ana0 puntosEliminadoLuis10 puntosGanador')
+    expect(screen.getByRole('list')).toHaveTextContent('1.Luis10 puntosGanador2.Ana0 puntosEliminado')
     const rows = within(screen.getByRole('list')).getAllByRole('listitem')
-    expect(rows[0].querySelector('img')).toHaveAttribute('src', expect.stringContaining('/player7.jpg'))
-    expect(rows[1].querySelector('img')).toHaveAttribute('src', expect.stringContaining('/player8.jpg'))
+    expect(rows[0].querySelector('img')).toHaveAttribute('src', expect.stringContaining('/player8.jpg'))
+    expect(rows[1].querySelector('img')).toHaveAttribute('src', expect.stringContaining('/player7.jpg'))
     expect(rows[0].querySelector('img')).toHaveAttribute('alt', '')
     expect(loadHistory()).toMatchObject([{
       winnerId: 'player-2',
       turnCount: 1,
+      ranking: ['player-2', 'player-1'],
       players: [{ avatarId: 'player7' }, { avatarId: 'player8' }],
     }])
     expect(screen.queryByRole('button', { name: 'Siguiente turno' })).not.toBeInTheDocument()
@@ -208,7 +214,7 @@ describe('mesa de juego', () => {
     keepAll()
     expect(screen.getByRole('status')).toHaveTextContent('Ganador: Luis')
     expect(screen.getByRole('alert')).toHaveTextContent('El resultado no se guardó')
-    expect(screen.getByRole('list')).toHaveTextContent('Ana0 puntosEliminadoLuis10 puntosGanador')
+    expect(screen.getByRole('list')).toHaveTextContent('1.Luis10 puntosGanador2.Ana0 puntosEliminado')
     expect(localStorage.getItem(HISTORY_KEY)).toBe('{')
     fireEvent.click(screen.getByRole('button', { name: 'Nueva partida' }))
     expect(onReturn).toHaveBeenCalledOnce()

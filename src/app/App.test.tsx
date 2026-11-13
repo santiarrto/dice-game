@@ -5,6 +5,7 @@ import type { GameSummary } from '../domain/game'
 import { HISTORY_KEY, loadHistory, saveHistory } from '../persistence/history'
 import * as gameDomain from '../domain/game'
 import { App } from './App'
+import { LANGUAGE_KEY } from '../i18n'
 
 const completedGame: GameSummary = {
   id: 'partida-1',
@@ -18,10 +19,113 @@ const completedGame: GameSummary = {
   turnCount: 4,
 }
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => {
+  localStorage.clear()
+  localStorage.setItem(LANGUAGE_KEY, JSON.stringify({ version: 1, language: 'es' }))
+})
 afterEach(() => vi.restoreAllMocks())
 
 describe('App', () => {
+  it('usa inglés por defecto y recuerda español sin perder la configuración', () => {
+    localStorage.removeItem(LANGUAGE_KEY)
+    const { unmount } = render(<App />)
+    expect(screen.getByRole('heading', { name: 'Survive' })).toBeVisible()
+    expect(document.documentElement.lang).toBe('en')
+    expect(document.title).toBe('Dice game: survive')
+    fireEvent.change(screen.getByLabelText(/Player 1 name/), { target: { value: 'Ana' } })
+    fireEvent.change(screen.getByRole('combobox', { name: 'Language' }), { target: { value: 'es' } })
+    expect(screen.getByRole('heading', { name: 'Sobrevivir' })).toBeVisible()
+    expect(screen.getByLabelText(/Nombre del jugador 1/)).toHaveValue('Ana')
+    expect(document.documentElement.lang).toBe('es')
+    expect(document.title).toBe('Juego de dados: sobrevivir')
+    expect(JSON.parse(localStorage.getItem(LANGUAGE_KEY) ?? '')).toEqual({ version: 1, language: 'es' })
+    unmount()
+    render(<App />)
+    expect(screen.getByRole('heading', { name: 'Sobrevivir' })).toBeVisible()
+  })
+
+  it.each([
+    JSON.stringify({ version: 1, language: 'fr' }),
+    JSON.stringify({ version: 2, language: 'es' }),
+    '{',
+  ])('usa inglés para una preferencia inválida sin modificar los datos: %s', (preference) => {
+    saveHistory(completedGame)
+    const history = localStorage.getItem(HISTORY_KEY)
+    localStorage.setItem(LANGUAGE_KEY, preference)
+    render(<App />)
+    expect(screen.getByRole('combobox', { name: 'Language' })).toHaveValue('en')
+    expect(screen.getByRole('region', { name: 'History' })).toHaveTextContent('Winner: Ana')
+    expect(localStorage.getItem(HISTORY_KEY)).toBe(history)
+    expect(localStorage.getItem(LANGUAGE_KEY)).toBe(preference)
+  })
+
+  it('traduce errores visibles al cambiar el idioma y no sobrescribe datos dañados', () => {
+    localStorage.removeItem(LANGUAGE_KEY)
+    localStorage.setItem(HISTORY_KEY, '{')
+    render(<App />)
+    expect(screen.getByRole('alert')).toHaveTextContent('saved history contains invalid data')
+    fireEvent.change(screen.getByLabelText('Language'), { target: { value: 'es' } })
+    expect(screen.getByRole('alert')).toHaveTextContent('historial guardado contiene datos inválidos')
+    expect(localStorage.getItem(HISTORY_KEY)).toBe('{')
+  })
+
+  it('traduce el error de configuración mientras permanece visible', () => {
+    localStorage.removeItem(LANGUAGE_KEY)
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Score per player'), { target: { value: '9' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Start game' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('integer between 10 and 50')
+    fireEvent.change(screen.getByLabelText('Language'), { target: { value: 'es' } })
+    expect(screen.getByRole('alert')).toHaveTextContent('entero entre 10 y 50')
+    expect(screen.getByLabelText('Marcador por jugador')).toHaveValue(9)
+  })
+
+  it('informa si no puede guardar el idioma y permite cambiarlo durante la sesión', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Denied', 'SecurityError')
+    })
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Idioma'), { target: { value: 'en' } })
+    expect(screen.getByRole('heading', { name: 'Survive' })).toBeVisible()
+    expect(screen.getByRole('status')).toHaveTextContent('language preference could not be saved')
+    expect(JSON.parse(localStorage.getItem(LANGUAGE_KEY) ?? '')).toEqual({ version: 1, language: 'es' })
+  })
+
+  it('cambia el idioma durante un turno sin perder dados seleccionados', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    render(<App />)
+    fireEvent.click(screen.getByRole('radio', { name: /Elegir manualmente/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Dado 1:/ }))
+    fireEvent.change(screen.getByLabelText('Idioma'), { target: { value: 'en' } })
+    expect(screen.getByRole('heading', { name: 'Game board' })).toBeVisible()
+    expect(screen.getByRole('button', { name: /^Die 1: value 1, selected/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Keep selected' })).toBeEnabled()
+  })
+
+  it('traduce resultado e historial sin modificar la clasificación guardada', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Marcador por jugador'), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('radio', { name: /Elegir manualmente/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    for (let die = 1; die <= 6; die++) {
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(`^Dado ${die}:`) }))
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Apartar seleccionados' }))
+    const saved = localStorage.getItem(HISTORY_KEY)
+    fireEvent.change(screen.getByLabelText('Idioma'), { target: { value: 'en' } })
+    expect(screen.getByRole('heading', { name: 'Final ranking' })).toBeVisible()
+    expect(screen.getByRole('status')).toHaveTextContent('Winner: Jugador 2')
+    expect(screen.getByText(/Jugador 1 is eliminated/)).toBeVisible()
+    expect(localStorage.getItem(HISTORY_KEY)).toBe(saved)
+    fireEvent.click(screen.getByRole('button', { name: 'New game' }))
+    expect(screen.getByRole('region', { name: 'History' })).toHaveTextContent('Final ranking')
+    expect(screen.getByRole('region', { name: 'History' })).toHaveTextContent('Jugador 2: 10 points')
+  })
+
   it('presenta la bienvenida y el formulario de configuración', () => {
     render(<App />)
 
@@ -85,6 +189,7 @@ describe('App', () => {
     render(<App />)
     const history = screen.getByRole('region', { name: 'Historial' })
     expect(within(history).getByText('Ganador:').parentElement).toHaveTextContent('Ana')
+    expect(within(history).getByText('Clasificación no disponible para esta partida.')).toBeVisible()
     expect(within(history).getByText('Ana: 7 puntos')).toBeInTheDocument()
     expect(within(history).getByText('Luis: 0 puntos')).toBeInTheDocument()
     const ana = within(history).getByText('Ana: 7 puntos').closest('li')
@@ -109,6 +214,7 @@ describe('App', () => {
     localStorage.setItem(HISTORY_KEY, JSON.stringify({ version: 1, matches: [legacy] }))
     render(<App />)
     const history = screen.getByRole('region', { name: 'Historial' })
+    expect(within(history).getByText('Clasificación no disponible para esta partida.')).toBeVisible()
     const row = within(history).getByText('Ana: 7 puntos').closest('li')
     if (!row) throw new Error('No se encontró el jugador en el historial.')
     const image = row.querySelector('img')
@@ -117,6 +223,21 @@ describe('App', () => {
     fireEvent.error(image)
     expect(within(row).getByText('Avatar no disponible.')).toBeVisible()
     expect(within(row).getByText('Ana: 7 puntos')).toBeVisible()
+  })
+
+  it('muestra la clasificación guardada en lugar del orden original de jugadores', () => {
+    saveHistory({
+      ...completedGame,
+      players: [...completedGame.players].reverse(),
+      ranking: ['a', 'b'],
+    })
+    render(<App />)
+    const history = screen.getByRole('region', { name: 'Historial' })
+    expect(within(history).getByText('Clasificación final:')).toBeVisible()
+    const ranking = history.querySelector<HTMLOListElement>('ol.history-item__ranking')
+    if (!ranking) throw new Error('No se encontró la clasificación.')
+    const rows = within(ranking).getAllByRole('listitem')
+    expect(rows.map((row) => row.textContent)).toEqual(['1.Ana: 7 puntos', '2.Luis: 0 puntos'])
   })
 
   it('avisa y conserva el historial si un avatar de versión 2 es inválido', () => {
@@ -236,8 +357,9 @@ describe('App', () => {
       throw new DOMException('Denied', 'SecurityError')
     })
     render(<App />)
-    expect(screen.getByRole('alert')).toHaveTextContent('almacenamiento local no está disponible')
-    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
-    expect(screen.getByRole('heading', { name: 'Mesa de juego' })).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('Local storage is unavailable')
+    expect(screen.getByRole('status')).toHaveTextContent('language preference could not be read')
+    fireEvent.click(screen.getByRole('button', { name: 'Start game' }))
+    expect(screen.getByRole('heading', { name: 'Game board' })).toBeInTheDocument()
   })
 })

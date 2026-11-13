@@ -25,14 +25,16 @@ afterEach(() => {
 describe('historial local', () => {
   it('conserva las diez partidas más recientes y las recupera en orden', () => {
     expect(loadHistory()).toEqual([])
-    for (let index = 0; index < 11; index++) saveHistory(summary(index))
+    for (let index = 0; index < 11; index++) {
+      saveHistory({ ...summary(index), ranking: ['player-1', 'player-2'] })
+    }
 
     const history = loadHistory()
     expect(history).toHaveLength(10)
     expect(history.map((match) => match.id)).toEqual(
       Array.from({ length: 10 }, (_, index) => `match-${10 - index}`),
     )
-    expect(history[0]).toEqual(summary(10))
+    expect(history[0]).toEqual({ ...summary(10), ranking: ['player-1', 'player-2'] })
   })
 
   it('evita guardar dos veces la misma partida y rechaza conflictos de id', () => {
@@ -54,10 +56,27 @@ describe('historial local', () => {
   it('guarda los avatares y el esquema opcional de clasificación en la versión 2', () => {
     const match = { ...summary(1), ranking: ['player-1', 'player-2'] }
     saveHistory(match)
+    saveHistory({ ...match, ranking: [...match.ranking] })
     const stored = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '')
     expect(stored).toEqual({ version: 2, matches: [match] })
     expect(loadHistory()).toEqual([match])
     expect(() => saveHistory({ ...match, ranking: ['player-2', 'player-1'] })).toThrow('resumen de partida inválido')
+  })
+
+  it('rechaza clasificaciones incompletas, repetidas o desconocidas sin sobrescribir el historial', () => {
+    const match = { ...summary(1), ranking: ['player-1', 'player-2'] }
+    saveHistory(match)
+    const before = localStorage.getItem(HISTORY_KEY)
+    for (const ranking of [['player-1'], ['player-1', 'player-1'], ['player-1', 'unknown']]) {
+      expect(() => saveHistory({ ...summary(2), ranking })).toThrow('resumen de partida inválido')
+      localStorage.setItem(HISTORY_KEY, JSON.stringify({ version: 2, matches: [{ ...match, ranking }] }))
+      const invalid = localStorage.getItem(HISTORY_KEY)
+      expect(() => loadHistory()).toThrow('datos inválidos')
+      expect(() => saveHistory(match)).toThrow('datos inválidos')
+      expect(localStorage.getItem(HISTORY_KEY)).toBe(invalid)
+      if (before === null) throw new Error('Falta el historial de prueba.')
+      localStorage.setItem(HISTORY_KEY, before)
+    }
   })
 
   it('migra los historiales de versión 1 y guarda la versión 2 al escribir', () => {

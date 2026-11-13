@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { avatarImage } from '../assets/avatars'
 import { DEFAULT_AVATAR_ID, type AvatarId } from '../domain/avatars'
+import { useLanguage } from '../i18n'
 
 interface PlayerAvatarProps {
   avatarId: AvatarId
 }
 
 export function PlayerAvatar({ avatarId }: PlayerAvatarProps) {
+  const { t } = useLanguage()
   const [failure, setFailure] = useState<{ source: string; fallbackFailed: boolean } | null>(null)
   const source = avatarImage(avatarId)
   const fallback = avatarImage(DEFAULT_AVATAR_ID)
@@ -27,7 +29,7 @@ export function PlayerAvatar({ avatarId }: PlayerAvatarProps) {
       )}
       {sourceFailed && (
         <span className="player-avatar__notice">
-          {unavailable ? 'Avatar no disponible.' : 'Avatar no disponible; se muestra el predeterminado.'}
+          {unavailable ? t.avatarUnavailable : t.avatarFallback}
         </span>
       )}
     </span>

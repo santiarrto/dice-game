@@ -6,7 +6,7 @@ Crear una aplicación web para jugar al juego de dados en navegadores de escrito
 
 ## Estado actual del proyecto
 
-El MVP está completo y validado. La Etapa 2 ha comenzado: T11–T15 están completadas; se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente y los avatares aparecen en resultados e historial. El historial versionado conserva los avatares y migra los registros antiguos. La visualización de avatares en la mesa sigue pendiente. La integración del logo depende de que el dueño del producto proporcione el archivo. El plan y tareas originales del MVP se conservaron en [docs/MVP/PLANNING-MVP.md](./docs/MVP/PLANNING-MVP.md) y [docs/MVP/TASKS-MVP.md](./docs/MVP/TASKS-MVP.md).
+El MVP está completo y validado. La Etapa 2 ha comenzado: T11–T18 están completadas; se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente, los resultados y el historial muestran avatares y clasificación final, la interfaz existente admite inglés y español, y el logo aparece en la aplicación y la pestaña. El historial versionado conserva los avatares y migra los registros antiguos. La visualización de avatares en la mesa sigue pendiente. El plan y tareas originales del MVP se conservaron en [docs/MVP/PLANNING-MVP.md](./docs/MVP/PLANNING-MVP.md) y [docs/MVP/TASKS-MVP.md](./docs/MVP/TASKS-MVP.md).
 
 | Tarea | Estado |
 |---|---|
@@ -25,9 +25,9 @@ El MVP está completo y validado. La Etapa 2 ha comenzado: T11–T15 están comp
 | T13 — Persistir avatares y migrar el historial | ✅ Completada |
 | T14 — Mostrar avatares en resultados e historial | ✅ Completada |
 | T15 — Implementar tres dificultades de IA | ✅ Completada |
-| T16 — Crear y guardar la clasificación final | ⚪ No asignada |
-| T17 — Añadir inglés y español | ⚪ No asignada |
-| T18 — Integrar logo y favicon | ⚪ No asignada |
+| T16 — Crear y guardar la clasificación final | ✅ Completada |
+| T17 — Añadir inglés y español | ✅ Completada |
+| T18 — Integrar logo y favicon | ✅ Completada |
 | T19 — Crear páginas de contacto y sugerencias | ⚪ No asignada |
 | T20 — Crear la página de preguntas frecuentes | ⚪ No asignada |
 | T21 — Simplificar el cierre al quedar un dado | ⚪ No asignada |
@@ -75,7 +75,7 @@ Ampliar la experiencia del MVP con avatares, participantes controlados por perso
 - El resumen persistido guarda el ID del avatar, no la imagen codificada ni una URL remota.
 - Los datos actuales del historial (versión 1) se migran al leerlos; los registros existentes reciben el avatar predeterminado `player1`. El primer guardado posterior escribe la versión 2.
 - Los IDs inválidos en historiales de versión 2 siguen causando un error recuperable y no se sobrescriben. Si una imagen válida no carga, se muestra el avatar predeterminado y un aviso.
-- El esquema versión 2 admite una clasificación opcional como lista ordenada de IDs de jugador; T16 la completará y usará al generar los resultados.
+- El esquema versión 2 guarda la clasificación como lista ordenada de IDs de jugador; los registros anteriores pueden carecer de ella.
 - Los archivos de imagen son recursos estáticos importados desde la aplicación. No se incluyen subidas de imágenes de usuarios, cuentas, backend ni sincronización en esta etapa.
 - La selección y sus estados deben ser operables con teclado, tener nombres accesibles y adaptarse a móvil.
 
@@ -91,6 +91,7 @@ Ampliar la experiencia del MVP con avatares, participantes controlados por perso
 
 - Al terminar, mostrar el orden completo de la partida: el ganador ocupa el primer lugar y el orden de los demás participantes es el inverso de su orden de eliminación; quien salió primero ocupa el último lugar.
 - Guardar la clasificación en el resumen de la partida del historial local, junto con los datos ya existentes.
+- Los registros antiguos sin clasificación siguen siendo legibles; se informa que el orden de clasificación no está disponible, sin deducirlo de los marcadores.
 - Conservar el límite de diez partidas recientes y la validación/migración versionada del historial.
 
 ### Indicador de liderazgo durante la partida
@@ -116,12 +117,15 @@ Ampliar la experiencia del MVP con avatares, participantes controlados por perso
 
 - El idioma predeterminado de la interfaz es inglés; español es opcional.
 - El usuario puede cambiar el idioma y la elección se recuerda en el almacenamiento local de ese navegador.
+- La preferencia se valida y guarda por separado en un formato versionado; los valores inválidos vuelven a inglés sin modificar el historial. Los errores de lectura o escritura se muestran sin impedir jugar.
 - Toda la interfaz, las páginas nuevas y los mensajes accesibles deben estar disponibles en ambos idiomas.
+- La interfaz existente está traducida; las páginas de contacto y preguntas frecuentes se incorporarán en ambos idiomas en T19 y T20.
 - Los datos del historial y las reglas del juego son independientes del idioma elegido.
 
 ### Logo, contacto y preguntas frecuentes
 
-- El dueño del producto proporcionará el archivo del nuevo logo. Se utilizará tanto en la aplicación como en el favicon del tab; la integración depende de recibir el recurso.
+- El dueño del producto proporcionó `src/assets/icon.jpg` para el logo de la aplicación y el favicon del tab.
+- El logo de 128 píxeles y el favicon PNG de 32 píxeles se derivan de esa imagen y se empaquetan localmente.
 - La página de contacto y sugerencias ofrecerá un enlace `mailto:` a `santiarrto@gmail.com`. No se enviarán datos mediante backend ni servicios externos.
 - La página de preguntas frecuentes se redactará a partir de las reglas aprobadas en `README.md` y las funciones incluidas en el producto.
 - Ambas páginas estarán disponibles en inglés y español y serán accesibles desde la navegación de la aplicación.
@@ -269,7 +273,7 @@ Lectura de dependencias:
 - T10 valida el MVP completo y depende de las tareas anteriores enumeradas en `TASKS.md`.
 - T11 define los IDs y el valor predeterminado; T12 integra los avatares y el tipo de participante; T13 amplía la persistencia. T14 presenta avatares en resultados e historial, y T25 los muestra en el tablero.
 - T15 implementa las decisiones de IA sobre el flujo ya existente (T06) y la selección de tipo de participante (T12). T16 construye el ranking a partir del flujo de eliminación y lo persiste en el historial (T13).
-- T17 añade traducciones y preferencia local; T18 necesita el archivo del logo suministrado por el dueño del producto. T19 y T20 añaden páginas independientes. T21 mejora el cierre del turno cuando queda un dado y T23 señala a los líderes; ambas usan la mesa y accesibilidad existentes (T07 y T09). T24 adapta el flujo de ataques para resolver sin intervención cuando solo existe un objetivo. T25 conecta los avatares configurados con la lista de jugadores del tablero. T22 valida todas las funcionalidades en conjunto.
+- T17 añade traducciones y preferencia local; T18 integra el logo suministrado por el dueño del producto. T19 y T20 añaden páginas independientes. T21 mejora el cierre del turno cuando queda un dado y T23 señala a los líderes; ambas usan la mesa y accesibilidad existentes (T07 y T09). T24 adapta el flujo de ataques para resolver sin intervención cuando solo existe un objetivo. T25 conecta los avatares configurados con la lista de jugadores del tablero. T22 valida todas las funcionalidades en conjunto.
 
 ## Criterio de entrega del MVP
 
