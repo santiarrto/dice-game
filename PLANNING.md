@@ -2,11 +2,11 @@
 
 ## Propósito
 
-Crear una aplicación web en español para jugar al juego de dados en navegadores de escritorio y móviles. El MVP cubre configuración, partida animada, eliminación, victoria e historial local. La siguiente etapa incorpora identidad visual mediante avatares de jugador.
+Crear una aplicación web para jugar al juego de dados en navegadores de escritorio y móviles. El MVP cubre configuración, partida animada, eliminación, victoria e historial local. La Etapa 2 incorpora avatares, partidas con IA, clasificación, inglés/español, identidad visual y páginas informativas.
 
 ## Estado actual del proyecto
 
-El MVP está completo y validado. La Etapa 2 está planificada, pero su implementación aún no ha comenzado. El plan y tareas originales del MVP se conservaron en [docs/PLANNING-MVP.md](./docs/PLANNING-MVP.md) y [docs/TASKS-MVP.md](./docs/TASKS-MVP.md).
+El MVP está completo y validado. La Etapa 2 está planificada, pero su implementación aún no ha comenzado. La integración del logo depende de que el dueño del producto proporcione el archivo. El plan y tareas originales del MVP se conservaron en [docs/MVP/PLANNING-MVP.md](./docs/MVP/PLANNING-MVP.md) y [docs/MVP/TASKS-MVP.md](./docs/MVP/TASKS-MVP.md).
 
 | Tarea | Estado |
 |---|---|
@@ -21,12 +21,19 @@ El MVP está completo y validado. La Etapa 2 está planificada, pero su implemen
 | T09 — Adaptabilidad, animación y accesibilidad | ✅ Completada |
 | T10 — Validación integral y entrega | ✅ Completada |
 | T11 — Definir catálogo y modelo de avatares | ⚪ No asignada |
-| T12 — Elegir avatar en la configuración | ⚪ No asignada |
-| T13 — Persistir avatar en el historial | ⚪ No asignada |
-| T14 — Mostrar avatares durante y después de la partida | ⚪ No asignada |
-| T15 — Validar la experiencia de avatares | ⚪ No asignada |
+| T12 — Configurar avatares y participantes humanos/IA | ⚪ No asignada |
+| T13 — Persistir avatares y migrar el historial | ⚪ No asignada |
+| T14 — Mostrar avatares en todas las vistas | ⚪ No asignada |
+| T15 — Implementar tres dificultades de IA | ⚪ No asignada |
+| T16 — Crear y guardar la clasificación final | ⚪ No asignada |
+| T17 — Añadir inglés y español | ⚪ No asignada |
+| T18 — Integrar logo y favicon | ⚪ No asignada |
+| T19 — Crear páginas de contacto y sugerencias | ⚪ No asignada |
+| T20 — Crear la página de preguntas frecuentes | ⚪ No asignada |
+| T21 — Simplificar el cierre al quedar un dado | ⚪ No asignada |
+| T22 — Validar e integrar la Etapa 2 | ⚪ No asignada |
 
-El detalle y los criterios de aceptación están en [TASKS.md](./TASKS.md). Las tareas T01–T10 corresponden al MVP completado; T11–T15 componen la Etapa 2.
+El detalle y los criterios de aceptación están en [TASKS.md](./TASKS.md). Las tareas T01–T10 corresponden al MVP completado; T11–T22 componen la Etapa 2.
 
 ## Roles y responsabilidades
 
@@ -49,13 +56,13 @@ El detalle y los criterios de aceptación están en [TASKS.md](./TASKS.md). Las 
 - Pantalla de victoria con ganador, resumen y acción para comenzar una nueva partida.
 - Consulta de las diez partidas terminadas más recientes, guardadas en el almacenamiento local del navegador.
 
-## Etapa 2 — Identidad visual de jugadores
+## Etapa 2 — Personalización y funcionalidades ampliadas
 
 ### Objetivo
 
-Permitir asignar a cada participante uno de los veinte avatares incluidos en `src/assets/player-icons/`, mantener la selección durante la partida y mostrarla en el tablero, el resultado final y el historial local.
+Ampliar la experiencia del MVP con avatares, participantes controlados por personas o por IA, clasificación final, selección de idioma, identidad visual y páginas de información y contacto. Las reglas de dados se mantienen sin cambios.
 
-### Alcance y decisiones
+### Avatares e identidad de jugadores
 
 - Permitir elegir uno de los veinte avatares para cada participante durante la configuración y mostrarlo en la mesa, la victoria y el historial local.
 - Los avatares se identifican con IDs estables definidos en un catálogo tipado; los nombres de archivo no se construyen dinámicamente desde datos de usuario.
@@ -66,11 +73,39 @@ Permitir asignar a cada participante uno de los veinte avatares incluidos en `sr
 - Los archivos de imagen son recursos estáticos importados desde la aplicación. No se incluyen subidas de imágenes de usuarios, cuentas, backend ni sincronización en esta etapa.
 - La selección y sus estados deben ser operables con teclado, tener nombres accesibles y adaptarse a móvil.
 
-### Fuera de alcance de esta etapa
+### Participantes controlados por IA
 
-- Elegir imágenes desde el dispositivo o recortarlas.
-- Cambiar reglas, marcador o flujo de turnos.
-- Sincronizar avatares o historial entre dispositivos.
+- Cada participante se configura como persona o IA; pueden coexistir participantes humanos e IA en una misma partida.
+- Se ofrecen tres dificultades. La dificultad fácil elige aleatoriamente entre acciones legales; la media intenta acercar el resultado a 30; la difícil evalúa las jugadas y el objetivo de ataque considerando marcadores y supervivencia.
+- La IA utiliza las mismas acciones legales y transiciones del flujo de juego que una persona. No altera resultados de dados ni las reglas.
+- La dificultad se elige por participante IA. El comportamiento debe ser determinista en pruebas mediante azar inyectable.
+
+### Clasificación final
+
+- Al terminar, mostrar el orden completo de la partida: el ganador ocupa el primer lugar y el orden de los demás participantes es el inverso de su orden de eliminación; quien salió primero ocupa el último lugar.
+- Guardar la clasificación en el resumen de la partida del historial local, junto con los datos ya existentes.
+- Conservar el límite de diez partidas recientes y la validación/migración versionada del historial.
+
+### Mejora de interacción al quedar un dado
+
+- Si al comenzar un lanzamiento solo queda un dado disponible, lanzar ese dado debe apartarlo automáticamente con el valor obtenido, sin requerir una selección manual.
+- Después de ese lanzamiento, ofrecer una única acción explícita y localizada para confirmar el cierre del turno, por ejemplo «Continuar con el siguiente jugador».
+- La confirmación continúa el flujo normal de resolución del turno. Si el resultado requiere elegir dirección de ataque, esa decisión sigue siendo obligatoria; no se omiten reglas ni resultados.
+- La mejora es de interfaz y no modifica las reglas de selección, suma, límite de lanzamientos ni resolución de ataques.
+
+### Idiomas
+
+- El idioma predeterminado de la interfaz es inglés; español es opcional.
+- El usuario puede cambiar el idioma y la elección se recuerda en el almacenamiento local de ese navegador.
+- Toda la interfaz, las páginas nuevas y los mensajes accesibles deben estar disponibles en ambos idiomas.
+- Los datos del historial y las reglas del juego son independientes del idioma elegido.
+
+### Logo, contacto y preguntas frecuentes
+
+- El dueño del producto proporcionará el archivo del nuevo logo. Se utilizará tanto en la aplicación como en el favicon del tab; la integración depende de recibir el recurso.
+- La página de contacto y sugerencias ofrecerá un enlace `mailto:` a `santiarrto@gmail.com`. No se enviarán datos mediante backend ni servicios externos.
+- La página de preguntas frecuentes se redactará a partir de las reglas aprobadas en `README.md` y las funciones incluidas en el producto.
+- Ambas páginas estarán disponibles en inglés y español y serán accesibles desde la navegación de la aplicación.
 
 ### Fuera de alcance
 
@@ -78,6 +113,7 @@ Permitir asignar a cada participante uno de los veinte avatares incluidos en `sr
 - Reanudar partidas que estaban en curso después de recargar o cerrar el navegador.
 - Rankings compartidos, chat, publicidad, pagos, analítica o integración con servicios externos.
 - Aplicación nativa para iOS/Android; el producto será una web adaptable.
+- Subir o editar imágenes de avatar desde el dispositivo.
 
 ## Decisiones iniciales y supuestos
 
@@ -175,7 +211,24 @@ flowchart LR
   T11 --> T13
   T12 --> T14
   T13 --> T14
-  T14 --> T15
+  T06 --> T15
+  T12 --> T15
+  T13 --> T16
+  T06 --> T16
+  T10 --> T17
+  T10 --> T18
+  T10 --> T19
+  T10 --> T20
+  T07 --> T21
+  T09 --> T21
+  T14 --> T22
+  T15 --> T22
+  T16 --> T22
+  T17 --> T22
+  T18 --> T22
+  T19 --> T22
+  T20 --> T22
+  T21 --> T22
 ```
 
 Lectura de dependencias:
@@ -186,7 +239,9 @@ Lectura de dependencias:
 - T08 requiere historial (T04), estado de partida (T06) y mesa de juego (T07).
 - T09 ajusta las vistas principales (T05, T07, T08).
 - T10 valida el MVP completo y depende de las tareas anteriores enumeradas en `TASKS.md`.
-- T11 define los IDs y el valor predeterminado; T12 integra la selección, T13 amplía la persistencia, T14 presenta los avatares y T15 valida la etapa completa.
+- T11 define los IDs y el valor predeterminado; T12 integra los avatares y el tipo de participante; T13 amplía la persistencia y T14 presenta los avatares.
+- T15 implementa las decisiones de IA sobre el flujo ya existente (T06) y la selección de tipo de participante (T12). T16 construye el ranking a partir del flujo de eliminación y lo persiste en el historial (T13).
+- T17 añade traducciones y preferencia local; T18 necesita el archivo del logo suministrado por el dueño del producto. T19 y T20 añaden páginas independientes. T21 mejora el cierre del turno cuando queda un dado, sobre la mesa y accesibilidad existentes (T07 y T09); T22 valida todas las funcionalidades en conjunto.
 
 ## Criterio de entrega del MVP
 
@@ -194,4 +249,4 @@ El MVP está listo cuando las tareas T01–T10 cumplen sus criterios, las reglas
 
 ## Criterio de entrega de la Etapa 2
 
-La Etapa 2 estará lista cuando T11–T15 cumplan sus criterios, los avatares se mantengan correctamente en partidas nuevas e históricas y los flujos pasen las pruebas unitarias, de integración y navegador.
+La Etapa 2 estará lista cuando T11–T22 cumplan sus criterios: avatares y tipos de participante se conservan; las tres dificultades de IA siguen las reglas; la clasificación final se muestra y persiste; inglés es el idioma predeterminado y la elección se recuerda; el logo se usa también como favicon; contacto/FAQs funcionan en ambos idiomas; y el cierre con un único dado requiere solo la confirmación final, sin selección manual. Los flujos deben pasar pruebas unitarias, de integración y navegador en escritorio y móvil.

@@ -156,9 +156,9 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 **Aceptación:** los comandos documentados funcionan, los escenarios críticos pasan y no hay errores bloqueantes en consola durante los flujos principales.
 
-## Etapa 2 — Identidad visual de jugadores
+## Etapa 2 — Personalización y funcionalidades ampliadas
 
-Las tareas T11–T15 amplían el MVP sin alterar las reglas del juego. Las decisiones de producto están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas.
+Las tareas T11–T22 amplían el MVP sin alterar las reglas del juego. Las decisiones están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas. El logo nuevo debe ser proporcionado por el dueño del producto antes de completar T18.
 
 ## T11 — Definir catálogo y modelo de avatares
 
@@ -173,7 +173,7 @@ Las tareas T11–T15 amplían el MVP sin alterar las reglas del juego. Las decis
 
 **Aceptación:** cada ID del catálogo corresponde a una imagen existente; tipos y valores inválidos se manejan de forma explícita y los jugadores existentes reciben el avatar predeterminado.
 
-## T12 — Elegir avatar en la configuración
+## T12 — Configurar avatares y participantes humanos/IA
 
 **Estado:** ⚪ No asignada.
 
@@ -181,12 +181,13 @@ Las tareas T11–T15 amplían el MVP sin alterar las reglas del juego. Las decis
 
 - Permitir elegir uno de los avatares para cada participante durante la configuración.
 - Mostrar el avatar predeterminado inicialmente y conservar la selección al editar el orden o cantidad de jugadores.
+- Permitir configurar a cada participante como persona o IA, admitiendo combinaciones de ambos tipos en una partida.
 - Hacer que la galería sea operable con teclado y táctil, con etiquetas y estado seleccionado accesibles.
 - Mantener la selección repetida entre participantes.
 
-**Aceptación:** la partida comienza con el avatar elegido para cada participante; se puede completar la configuración solo con teclado y en un viewport móvil estrecho.
+**Aceptación:** la partida comienza con el avatar y tipo de participante elegidos para cada persona; se puede completar la configuración solo con teclado y en un viewport móvil estrecho.
 
-## T13 — Persistir avatar en el historial
+## T13 — Persistir avatares y preparar el historial versionado
 
 **Estado:** ⚪ No asignada.
 
@@ -194,12 +195,13 @@ Las tareas T11–T15 amplían el MVP sin alterar las reglas del juego. Las decis
 
 - Incluir el ID del avatar de cada jugador en el resumen de partida.
 - Versionar el formato del historial y migrar registros actuales de versión 1 asignándoles `player1`.
+- Definir el esquema versionado para almacenar la clasificación final que se añadirá en T16.
 - Mantener la validación del historial: las versiones incompatibles y los datos inválidos no deben sobrescribirse silenciosamente.
 - Conservar el límite actual de diez resultados recientes y el comportamiento de guardado único.
 
-**Aceptación:** una partida nueva conserva los IDs de avatar tras recargar; los registros de versión 1 siguen siendo legibles con el avatar predeterminado; los datos inválidos siguen mostrando un error recuperable.
+**Aceptación:** una partida nueva conserva los IDs de avatar tras recargar; los registros de versión 1 siguen siendo legibles con el avatar predeterminado; el esquema admite el ranking; los datos inválidos siguen mostrando un error recuperable.
 
-## T14 — Mostrar avatares durante y después de la partida
+## T14 — Mostrar avatares en todas las vistas
 
 **Estado:** ⚪ No asignada.
 
@@ -212,15 +214,104 @@ Las tareas T11–T15 amplían el MVP sin alterar las reglas del juego. Las decis
 
 **Aceptación:** el avatar correcto acompaña al jugador en configuración, partida, victoria e historial; la interfaz sigue siendo clara con imágenes fallidas, datos antiguos y movimiento reducido.
 
-## T15 — Validar la experiencia de avatares
+## T15 — Implementar tres dificultades de IA
 
 **Estado:** ⚪ No asignada.
 
-**Dependencias:** T12, T13 y T14.
+**Dependencias:** T06 y T12.
 
-- Añadir pruebas unitarias para catálogo, valores predeterminados y migración del historial.
-- Añadir pruebas de integración para selección, inicio, victoria y consulta del resultado persistido.
-- Añadir o extender pruebas de navegador para escritorio y móvil, incluidos teclado y accesibilidad básica.
-- Ejecutar lint, suite de pruebas, pruebas de navegador y build; actualizar la documentación.
+- Implementar una IA fácil que seleccione aleatoriamente entre acciones legales.
+- Implementar una IA media que intente acercar la suma del turno a 30.
+- Implementar una IA difícil que evalúe las jugadas y el objetivo de ataque según los marcadores y la supervivencia de los participantes.
+- Usar el flujo de juego existente para validar las acciones; la IA no debe omitir reglas ni controlar el resultado de los dados.
+- Inyectar azar para que las decisiones de IA puedan probarse de forma determinista.
 
-**Aceptación:** todos los avatares y la migración pasan validaciones deterministas, la suite completa termina correctamente y no hay errores de consola en los flujos principales.
+**Aceptación:** cada nivel toma decisiones válidas según su política, responde cuando le corresponde y completa partidas mixtas persona/IA; las pruebas cubren niveles y casos límite de manera determinista.
+
+## T16 — Crear y guardar la clasificación final
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T06 y T13.
+
+- Registrar el orden de eliminación durante la partida.
+- Mostrar al finalizar una clasificación completa: ganador primero y demás participantes en orden inverso al de eliminación, por lo que quien salió primero queda al final.
+- Guardar y mostrar el mismo orden en el historial local, sin duplicar resúmenes ni superar diez partidas.
+- Mantener la clasificación independiente del idioma de la interfaz.
+
+**Aceptación:** una partida terminada presenta a todos los participantes exactamente una vez en el orden establecido; tras recargar, el historial conserva ese orden y los registros antiguos siguen siendo legibles.
+
+## T17 — Añadir inglés y español
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T10.
+
+- Hacer que inglés sea el idioma predeterminado y ofrecer español como alternativa.
+- Traducir la interfaz completa, las páginas informativas, los errores y los anuncios accesibles.
+- Guardar la preferencia de idioma en el almacenamiento local del navegador y aplicarla al volver a abrir la aplicación.
+- Mantener las reglas y los datos persistidos independientes del idioma.
+
+**Aceptación:** una primera visita muestra inglés; al seleccionar español, toda la interfaz cambia y conserva la selección tras recargar; un valor de idioma inválido vuelve al predeterminado sin corromper otros datos.
+
+## T18 — Integrar logo y favicon
+
+**Estado:** ⚪ No asignada. Requiere que el dueño del producto proporcione el archivo de logo.
+
+**Dependencias:** T10 y entrega del recurso de logo.
+
+- Usar el nuevo logo en la aplicación y como favicon del tab del navegador.
+- Asegurar que el recurso se empaquete localmente y se vea correctamente en los tamaños y fondos usados.
+- Incluir nombre accesible cuando el logo transmita información y evitar texto alternativo redundante si es decorativo.
+
+**Aceptación:** el logo actualizado aparece en la aplicación y el favicon correcto se muestra en el tab en desarrollo y en el build de producción.
+
+## T19 — Crear páginas de contacto y sugerencias
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T10 y T17.
+
+- Añadir una página navegable de contacto y sugerencias en inglés y español.
+- Incluir un enlace `mailto:` a `santiarrto@gmail.com` que abra la aplicación de correo predeterminada.
+- No guardar ni enviar sugerencias a un servidor o servicio externo.
+- Hacer la página utilizable con teclado, lectores de pantalla y viewport móvil.
+
+**Aceptación:** el enlace abre un nuevo mensaje dirigido a la dirección indicada; navegación y contenido están disponibles en ambos idiomas sin depender de un backend.
+
+## T20 — Crear la página de preguntas frecuentes
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T10 y T17.
+
+- Redactar las preguntas y respuestas con base en las reglas aprobadas en `README.md` y las funciones de la aplicación.
+- Publicar la página en inglés y español, con navegación clara desde la aplicación.
+- Usar estructura semántica y asegurar legibilidad en móvil y operación por teclado.
+
+**Aceptación:** las respuestas coinciden con las reglas canónicas y las páginas están completas en ambos idiomas.
+
+## T21 — Simplificar el cierre del turno cuando queda un dado
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T07 y T09.
+
+- Cuando solo quede un dado disponible para lanzar, apartar automáticamente su resultado al terminar el lanzamiento, sin pedir una selección manual.
+- En la zona de acciones del turno, reemplazar las acciones de selección/lanzamiento por una única acción explícita para confirmar el cierre, con un texto localizado como «Continuar con el siguiente jugador».
+- Al confirmar, continuar la resolución normal del turno: conservar cualquier decisión de ataque que corresponda y avanzar al siguiente jugador activo solo cuando las reglas lo permitan.
+- Cubrir la experiencia con pruebas de componente e integración, incluyendo la variante en que el resultado requiere elegir dirección de ataque.
+
+**Aceptación:** en el caso descrito, el único dado restante se aparta sin interacción adicional y el jugador solo confirma el cierre del turno; no se puede volver a lanzar ese dado, se respetan ataques/eliminaciones y la acción funciona con teclado y en móvil.
+
+## T22 — Validar e integrar la Etapa 2
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T14, T15, T16, T17, T18, T19, T20 y T21.
+
+- Añadir pruebas unitarias y de integración para catálogo/migración de avatares, configuración humana/IA, políticas de IA, ranking, traducciones, páginas nuevas y cierre automático con un dado.
+- Extender las pruebas de navegador para escritorio, móvil, selección de idioma, juego mixto, ranking, historial y confirmación de cierre de turno.
+- Ejecutar lint, pruebas unitarias, pruebas de navegador y build; actualizar la documentación.
+
+**Aceptación:** las funcionalidades de T11–T21 cumplen sus criterios, las pruebas pasan, no hay errores de consola en flujos críticos y el archivo de logo requerido está integrado.

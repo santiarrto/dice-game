@@ -2,7 +2,7 @@
 
 ## Misión
 
-Desarrollar una aplicación web responsive del juego de dados descrito en [README.md](./README.md). Debe funcionar en navegadores de escritorio y móviles, permitir configurar y jugar una partida, y mostrar resultados recientes guardados localmente en el navegador.
+Desarrollar una aplicación web responsive del juego de dados descrito en [README.md](./README.md). Debe funcionar en navegadores de escritorio y móviles, permitir configurar y jugar una partida, y mostrar resultados recientes guardados localmente en el navegador. La interfaz admite inglés y español; inglés es el idioma predeterminado.
 
 ## Antes de trabajar
 
@@ -20,12 +20,18 @@ Desarrollar una aplicación web responsive del juego de dados descrito en [READM
 - Crear una interfaz en español, mobile-first, con animaciones accesibles.
 - Mantener visible el jugador actual, el siguiente jugador y quien jugó último.
 - Mostrar el resultado final y guardar un historial local de partidas terminadas.
+- Diferenciar jugadores con avatares y permitir que cada participante sea persona o IA, con tres niveles de dificultad.
+- Mostrar y guardar el ranking final según el orden de eliminación.
+- Cambiar idioma entre inglés y español, con preferencia guardada localmente.
+- Integrar el nuevo logo en la aplicación y como favicon cuando el dueño del producto proporcione el archivo.
+- Añadir páginas de contacto y sugerencias (enlace `mailto:`) y preguntas frecuentes en ambos idiomas.
 - Añadir pruebas, documentación y validaciones necesarias para las funcionalidades implementadas.
 
 ### Fuera de alcance salvo solicitud explícita
 
 - Cuentas, autenticación, backend, sincronización entre dispositivos o multijugador en red.
 - Analítica, publicidad, pagos o envío de datos a servicios externos.
+- Envío automático de sugerencias a un servidor; el contacto se limita a abrir la aplicación de correo del usuario.
 - Reanudar una partida en curso después de cerrar o recargar la página.
 - Cambiar reglas del juego sin aprobación.
 

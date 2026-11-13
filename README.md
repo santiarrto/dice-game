@@ -2,7 +2,9 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> ✅ **Estado del proyecto:** MVP validado. La Etapa 2 está planificada: selección de avatares para los jugadores, integración en la partida e historial local.
+> ✅ **Estado del proyecto:** MVP validado. La Etapa 2 está planificada, pero aún no implementada: avatares, participantes humanos/IA con tres dificultades, ranking final, interfaz en inglés y español (inglés predeterminado), nuevo logo y favicon, y páginas de contacto/FAQs.
+
+La página de contacto abrirá un mensaje de correo dirigido a `santiarrto@gmail.com`; no se almacenarán ni enviarán sugerencias mediante un backend. La integración del nuevo logo depende de recibir el archivo proporcionado por el dueño del producto. El alcance detallado está en [PLANNING.md](./PLANNING.md) y sus tareas en [TASKS.md](./TASKS.md).
 
 ## 🚀 Requisitos
 
@@ -136,8 +138,9 @@ dice-game/
 ├── PLANNING.md           # Arquitectura y planificación
 ├── TASKS.md              # Tareas y criterios de aceptación
 ├── docs/
-│   ├── PLANNING-MVP.md   # Copia histórica de la planeación del MVP
-│   └── TASKS-MVP.md     # Copia histórica de las tareas del MVP
+│   └── MVP/
+│       ├── PLANNING-MVP.md # Copia histórica de la planeación del MVP
+│       └── TASKS-MVP.md    # Copia histórica de las tareas del MVP
 ├── eslint.config.js      # Reglas de lint
 ├── package.json          # Dependencias y comandos
 ├── package-lock.json     # Versiones exactas de dependencias
