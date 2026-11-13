@@ -34,6 +34,158 @@ async function setRandomValue(page: Page, value: number) {
 }
 
 for (const viewport of [{ width: 320, height: 780 }, { width: 1280, height: 900 }]) {
+  test(`muestra los líderes y actualiza sus coronas en ${viewport.width}px`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text())
+    })
+    await page.setViewportSize(viewport)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await useSpanish(page)
+    await page.goto('/')
+    await page.getByLabel('Cantidad de jugadores').selectOption('3')
+    await page.getByLabel(/Nombre del jugador 1/).fill('M'.repeat(40))
+    await page.getByLabel(/Nombre del jugador 2/).fill('Luis')
+    await page.getByLabel(/Nombre del jugador 3/).fill('Eva')
+    await page.getByRole('radio', { name: /Elegir manualmente/ }).check()
+    await page.getByRole('spinbutton', { name: 'Marcador por jugador' }).fill('10')
+    await setRandomValue(page, 0.99)
+    await page.getByRole('button', { name: 'Comenzar partida' }).click()
+    const scoreboard = page.getByRole('complementary', { name: 'Jugadores' })
+    const rows = scoreboard.getByRole('listitem')
+    await expect(scoreboard.getByText('Líder', { exact: true })).toHaveCount(3)
+    await expect(rows.nth(0).locator('.scoreboard__leader [aria-hidden="true"]')).toHaveText('👑')
+    await rollAndKeepAll(page)
+    await page.getByRole('radio', { name: 'Siguiente: Luis' }).check()
+    await page.getByRole('button', { name: 'Confirmar ataque' }).click()
+    await expect(rows.nth(0).getByText('Líder', { exact: true })).toBeVisible()
+    await expect(rows.nth(1).getByText('Líder', { exact: true })).toHaveCount(0)
+    await expect(rows.nth(2).getByText('Líder', { exact: true })).toBeVisible()
+    await page.getByLabel('Idioma').selectOption('en')
+    await expect(page.getByRole('complementary', { name: 'Players' }).getByText('Leader', { exact: true })).toHaveCount(2)
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await expect.poll(() => page.getByRole('complementary', { name: 'Players' }).locator('.scoreboard__leader').evaluateAll((labels) =>
+      labels.every((label) => {
+        const bounds = label.getBoundingClientRect()
+        return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth
+      }))).toBe(true)
+    expect(errors).toEqual([])
+  })
+
+  for (const scenario of [
+    { name: 'sin ataque', random: 0.7, attack: false },
+    { name: 'con ataque', random: 0.99, attack: true },
+  ]) {
+    test(`confirma el último dado ${scenario.name} con teclado en ${viewport.width}px`, async ({ page }) => {
+      const errors: string[] = []
+      page.on('pageerror', (error) => errors.push(error.message))
+      page.on('console', (message) => {
+        if (message.type() === 'error') errors.push(message.text())
+      })
+      await page.setViewportSize(viewport)
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await configureGame(page, scenario.random)
+      for (const numbers of [[1, 2], [3, 4], [5]]) {
+        await page.getByRole('button', { name: 'Lanzar dados' }).click()
+        for (const number of numbers) await page.getByRole('button', { name: new RegExp(`^Dado ${number}:`) }).click()
+        await page.getByRole('button', { name: 'Apartar seleccionados' }).click()
+      }
+      await page.getByRole('button', { name: 'Lanzar dados' }).click()
+      await expect(page.getByRole('button', { name: /^Dado 6:.*apartado/ })).toBeDisabled()
+      await expect(page.getByRole('button', { name: 'Lanzar dados' })).toHaveCount(0)
+      await expect(page.getByRole('button', { name: 'Apartar seleccionados' })).toHaveCount(0)
+      await expect(page.getByText(/último dado se apartó automáticamente/)).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Confirmar turno' })).toBeFocused()
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+      await page.keyboard.press('Enter')
+      if (scenario.attack) {
+        const target = page.getByRole('radio', { name: 'Anterior: Luis' })
+        await expect(target).toBeFocused()
+        await page.keyboard.press('Space')
+        await page.keyboard.press('Tab')
+        await expect(page.getByRole('button', { name: 'Confirmar ataque' })).toBeFocused()
+        await page.keyboard.press('Enter')
+        await expect(page.getByText(/ataque descuenta 6 puntos a Luis/)).toBeVisible()
+        await expect(page.getByRole('button', { name: 'Siguiente turno' })).toBeFocused()
+      } else {
+        await expect(page.getByText(/Los marcadores no cambian/)).toBeVisible()
+        await expect(page.getByRole('button', { name: 'Siguiente turno' })).toBeFocused()
+      }
+      await page.keyboard.press('Enter')
+      await expect(page.getByText(/Juega:/)).toContainText('Luis')
+      expect(errors).toEqual([])
+    })
+  }
+
+  test(`consulta las preguntas frecuentes con teclado en ambos idiomas en ${viewport.width}px`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text())
+    })
+    await page.setViewportSize(viewport)
+    await page.goto('/')
+    await page.getByLabel('Player 1 name').fill('Ana')
+    await page.getByLabel('Language').focus()
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Tab')
+    const faqButton = page.getByRole('button', { name: 'Frequently asked questions' })
+    await expect(faqButton).toBeFocused()
+    await page.keyboard.press('Enter')
+    const faq = page.getByRole('region', { name: 'Frequently asked questions' })
+    await expect(faq.getByRole('heading', { level: 2 })).toBeFocused()
+    await expect(faqButton).toHaveAttribute('aria-current', 'page')
+    await expect(faq.getByRole('heading', { level: 3 })).toHaveCount(9)
+    await expect(faq.getByText(/remaining dice rolled on the fifth roll count/)).toBeVisible()
+    await expect(page).toHaveTitle('Frequently asked questions | Dice game: survive')
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.getByLabel('Language').selectOption('es')
+    const spanishFaq = page.getByRole('region', { name: 'Preguntas frecuentes' })
+    await expect(spanishFaq.getByRole('heading', { level: 3 })).toHaveCount(9)
+    await expect(spanishFaq.getByText(/dados restantes que se lanzaron en el quinto lanzamiento/)).toBeVisible()
+    await expect(page).toHaveTitle('Preguntas frecuentes | Juego de dados: sobrevivir')
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.getByLabel('Idioma').focus()
+    await page.keyboard.press('Tab')
+    await expect(page.getByRole('button', { name: 'Inicio' })).toBeFocused()
+    await page.keyboard.press('Enter')
+    await expect(page.getByLabel(/Nombre del jugador 1/)).toHaveValue('Ana')
+    expect(errors).toEqual([])
+  })
+
+  test(`navega al contacto con teclado en ambos idiomas en ${viewport.width}px`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text())
+    })
+    await page.setViewportSize(viewport)
+    await page.goto('/')
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Tab')
+    const contact = page.getByRole('button', { name: 'Contact and suggestions' })
+    await expect(contact).toBeFocused()
+    await page.keyboard.press('Enter')
+    await expect(page.getByRole('heading', { name: 'Contact and suggestions' })).toBeFocused()
+    await expect(contact).toHaveAttribute('aria-current', 'page')
+    const email = page.getByRole('link', { name: 'santiarrto@gmail.com' })
+    await page.keyboard.press('Tab')
+    await expect(email).toBeFocused()
+    await expect(email).toHaveAttribute('href', 'mailto:santiarrto@gmail.com')
+    await expect(page.getByText('This link opens your email app. Nothing is sent or saved by this website.')).toBeVisible()
+    await page.getByLabel('Language').selectOption('es')
+    await expect(page.getByRole('heading', { name: 'Contacto y sugerencias' })).toBeVisible()
+    await expect(page.getByText('Este enlace abre tu aplicación de correo. Esta web no envía ni guarda mensajes.')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'santiarrto@gmail.com' })).toHaveAttribute('href', 'mailto:santiarrto@gmail.com')
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.getByRole('button', { name: 'Inicio' }).click()
+    await expect(page.getByRole('heading', { name: '¿Quiénes juegan?' })).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
   test(`muestra el logo y carga el favicon en ${viewport.width}px`, async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))

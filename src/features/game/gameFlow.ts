@@ -26,6 +26,7 @@ export interface TurnResult {
 
 export type GameFlow =
   | { phase: 'playing'; game: Game }
+  | { phase: 'confirm-turn'; game: Game }
   | { phase: 'choose-target'; game: Game; total: number; points: number }
   | { phase: 'turn-complete'; game: Game; result: TurnResult }
   | { phase: 'finished'; game: Game; result: TurnResult; winnerId: string; ranking: readonly string[] }
@@ -93,7 +94,18 @@ function updateTurn(game: Game): GameFlow {
 
 export function rollGameDice(flow: GameFlow, random: RandomSource = Math.random): GameFlow {
   if (flow.phase !== 'playing') throw new Error('No se puede lanzar en este momento.')
-  return updateTurn({ ...flow.game, turn: rollDice(flow.game.turn, random) })
+  const remaining = flow.game.turn.dice.filter((die) => !die.locked)
+  let turn = rollDice(flow.game.turn, random)
+  if (remaining.length === 1) {
+    if (turn.phase === 'selecting') turn = selectDice(turn, [remaining[0].id])
+    return { phase: 'confirm-turn', game: { ...flow.game, turn } }
+  }
+  return updateTurn({ ...flow.game, turn })
+}
+
+export function confirmTurn(flow: GameFlow): GameFlow {
+  if (flow.phase !== 'confirm-turn') throw new Error('No hay un turno pendiente de confirmación.')
+  return updateTurn(flow.game)
 }
 
 export function selectGameDice(flow: GameFlow, ids: readonly number[]): GameFlow {

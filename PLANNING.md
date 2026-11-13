@@ -6,7 +6,7 @@ Crear una aplicación web para jugar al juego de dados en navegadores de escrito
 
 ## Estado actual del proyecto
 
-El MVP está completo y validado. La Etapa 2 ha comenzado: T11–T18 están completadas; se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente, los resultados y el historial muestran avatares y clasificación final, la interfaz existente admite inglés y español, y el logo aparece en la aplicación y la pestaña. El historial versionado conserva los avatares y migra los registros antiguos. La visualización de avatares en la mesa sigue pendiente. El plan y tareas originales del MVP se conservaron en [docs/MVP/PLANNING-MVP.md](./docs/MVP/PLANNING-MVP.md) y [docs/MVP/TASKS-MVP.md](./docs/MVP/TASKS-MVP.md).
+El MVP está completo y validado. La Etapa 2 ha comenzado: T11–T21 y T23 están completadas; se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente, los resultados y el historial muestran avatares y clasificación final, la interfaz, contacto y preguntas frecuentes admiten inglés y español, el logo aparece en la aplicación y la pestaña, el último dado disponible se aparta automáticamente y la mesa señala a los líderes activos. El historial versionado conserva los avatares y migra los registros antiguos. La visualización de avatares en la mesa sigue pendiente. El plan y tareas originales del MVP se conservaron en [docs/MVP/PLANNING-MVP.md](./docs/MVP/PLANNING-MVP.md) y [docs/MVP/TASKS-MVP.md](./docs/MVP/TASKS-MVP.md).
 
 | Tarea | Estado |
 |---|---|
@@ -28,15 +28,16 @@ El MVP está completo y validado. La Etapa 2 ha comenzado: T11–T18 están comp
 | T16 — Crear y guardar la clasificación final | ✅ Completada |
 | T17 — Añadir inglés y español | ✅ Completada |
 | T18 — Integrar logo y favicon | ✅ Completada |
-| T19 — Crear páginas de contacto y sugerencias | ⚪ No asignada |
-| T20 — Crear la página de preguntas frecuentes | ⚪ No asignada |
-| T21 — Simplificar el cierre al quedar un dado | ⚪ No asignada |
-| T23 — Señalar con una corona a los líderes | ⚪ No asignada |
+| T19 — Crear páginas de contacto y sugerencias | ✅ Completada |
+| T20 — Crear la página de preguntas frecuentes | ✅ Completada |
+| T21 — Simplificar el cierre al quedar un dado | ✅ Completada |
+| T23 — Señalar con una corona a los líderes | ✅ Completada |
 | T24 — Atacar automáticamente al único objetivo disponible | ⚪ No asignada |
 | T25 — Mostrar en el tablero los avatares seleccionados | ⚪ No asignada |
+| T26 — Crear la página «About» y contar la historia del juego | ⚪ No asignada |
 | T22 — Validar e integrar la Etapa 2 | ⚪ No asignada |
 
-El detalle y los criterios de aceptación están en [TASKS.md](./TASKS.md). Las tareas T01–T10 corresponden al MVP completado; T11–T25 componen la Etapa 2.
+El detalle y los criterios de aceptación están en [TASKS.md](./TASKS.md). Las tareas T01–T10 corresponden al MVP completado; T11–T26 componen la Etapa 2.
 
 ## Roles y responsabilidades
 
@@ -105,6 +106,7 @@ Ampliar la experiencia del MVP con avatares, participantes controlados por perso
 - Si al comenzar un lanzamiento solo queda un dado disponible, lanzar ese dado debe apartarlo automáticamente con el valor obtenido, sin requerir una selección manual.
 - Después de ese lanzamiento, ofrecer una única acción explícita y localizada para confirmar el cierre del turno, por ejemplo «Continuar con el siguiente jugador».
 - La confirmación continúa el flujo normal de resolución del turno. Si el resultado requiere elegir dirección de ataque, esa decisión sigue siendo obligatoria; no se omiten reglas ni resultados.
+- Una IA confirma automáticamente; para una persona se muestra el resultado antes de avanzar al siguiente turno.
 - La mejora es de interfaz y no modifica las reglas de selección, suma, límite de lanzamientos ni resolución de ataques.
 
 ### Mejora de interacción al atacar al único objetivo posible
@@ -119,16 +121,17 @@ Ampliar la experiencia del MVP con avatares, participantes controlados por perso
 - El usuario puede cambiar el idioma y la elección se recuerda en el almacenamiento local de ese navegador.
 - La preferencia se valida y guarda por separado en un formato versionado; los valores inválidos vuelven a inglés sin modificar el historial. Los errores de lectura o escritura se muestran sin impedir jugar.
 - Toda la interfaz, las páginas nuevas y los mensajes accesibles deben estar disponibles en ambos idiomas.
-- La interfaz existente está traducida; las páginas de contacto y preguntas frecuentes se incorporarán en ambos idiomas en T19 y T20.
+- La interfaz, la página de contacto y las preguntas frecuentes están traducidas; «About» se incorporará en ambos idiomas en T26.
 - Los datos del historial y las reglas del juego son independientes del idioma elegido.
 
-### Logo, contacto y preguntas frecuentes
+### Logo y páginas informativas
 
 - El dueño del producto proporcionó `src/assets/icon.jpg` para el logo de la aplicación y el favicon del tab.
 - El logo de 128 píxeles y el favicon PNG de 32 píxeles se derivan de esa imagen y se empaquetan localmente.
-- La página de contacto y sugerencias ofrecerá un enlace `mailto:` a `santiarrto@gmail.com`. No se enviarán datos mediante backend ni servicios externos.
-- La página de preguntas frecuentes se redactará a partir de las reglas aprobadas en `README.md` y las funciones incluidas en el producto.
-- Ambas páginas estarán disponibles en inglés y español y serán accesibles desde la navegación de la aplicación.
+- La página de contacto y sugerencias ofrece un enlace `mailto:` a `santiarrto@gmail.com`. No se envían datos mediante backend ni servicios externos. La navegación está disponible desde la bienvenida y se oculta durante la partida para no interrumpirla.
+- La página de preguntas frecuentes explica las reglas aprobadas en `README.md` y las funciones incluidas en el producto.
+- La página «About» explicará el juego y acreditará a Santiago Arredondo, con una anécdota sobre las partidas y apuestas compartidas con compañeros de trabajo durante los almuerzos. La mención de apuestas es histórica y no incorpora apuestas ni pagos a la aplicación.
+- Las páginas están disponibles en inglés y español y son accesibles desde la navegación de la aplicación; contacto y preguntas frecuentes ya están disponibles, y «About» corresponde a T26.
 
 ### Fuera de alcance
 
@@ -250,6 +253,8 @@ flowchart LR
   T07 --> T24
   T07 --> T25
   T12 --> T25
+  T17 --> T26
+  T19 --> T26
   T14 --> T22
   T15 --> T22
   T16 --> T22
@@ -261,6 +266,7 @@ flowchart LR
   T23 --> T22
   T24 --> T22
   T25 --> T22
+  T26 --> T22
 ```
 
 Lectura de dependencias:
@@ -273,7 +279,7 @@ Lectura de dependencias:
 - T10 valida el MVP completo y depende de las tareas anteriores enumeradas en `TASKS.md`.
 - T11 define los IDs y el valor predeterminado; T12 integra los avatares y el tipo de participante; T13 amplía la persistencia. T14 presenta avatares en resultados e historial, y T25 los muestra en el tablero.
 - T15 implementa las decisiones de IA sobre el flujo ya existente (T06) y la selección de tipo de participante (T12). T16 construye el ranking a partir del flujo de eliminación y lo persiste en el historial (T13).
-- T17 añade traducciones y preferencia local; T18 integra el logo suministrado por el dueño del producto. T19 y T20 añaden páginas independientes. T21 mejora el cierre del turno cuando queda un dado y T23 señala a los líderes; ambas usan la mesa y accesibilidad existentes (T07 y T09). T24 adapta el flujo de ataques para resolver sin intervención cuando solo existe un objetivo. T25 conecta los avatares configurados con la lista de jugadores del tablero. T22 valida todas las funcionalidades en conjunto.
+- T17 añade traducciones y preferencia local; T18 integra el logo suministrado por el dueño del producto. T19, T20 y T26 añaden páginas informativas; T26 reutiliza las traducciones y la navegación de T17 y T19. T21 mejora el cierre del turno cuando queda un dado y T23 señala a los líderes; ambas usan la mesa y accesibilidad existentes (T07 y T09). T24 adapta el flujo de ataques para resolver sin intervención cuando solo existe un objetivo. T25 conecta los avatares configurados con la lista de jugadores del tablero. T22 valida todas las funcionalidades en conjunto.
 
 ## Criterio de entrega del MVP
 
@@ -281,4 +287,4 @@ El MVP está listo cuando las tareas T01–T10 cumplen sus criterios, las reglas
 
 ## Criterio de entrega de la Etapa 2
 
-La Etapa 2 estará lista cuando T11–T25 cumplan sus criterios: avatares y tipos de participante se conservan y muestran en la mesa, los resultados y el historial; las tres dificultades de IA siguen las reglas; la clasificación final se muestra y persiste; la mesa señala a los líderes; inglés es el idioma predeterminado y la elección se recuerda; el logo se usa también como favicon; contacto/FAQs funcionan en ambos idiomas; el cierre con un único dado requiere solo la confirmación final, sin selección manual; y un ataque contra el único objetivo posible se resuelve automáticamente. Los flujos deben pasar pruebas unitarias, de integración y navegador en escritorio y móvil.
+La Etapa 2 estará lista cuando T11–T26 cumplan sus criterios: avatares y tipos de participante se conservan y muestran en la mesa, los resultados y el historial; las tres dificultades de IA siguen las reglas; la clasificación final se muestra y persiste; la mesa señala a los líderes; inglés es el idioma predeterminado y la elección se recuerda; el logo se usa también como favicon; contacto, FAQs y «About» funcionan en ambos idiomas; el cierre con un único dado requiere solo la confirmación final, sin selección manual; y un ataque contra el único objetivo posible se resuelve automáticamente. Los flujos deben pasar pruebas unitarias, de integración y navegador en escritorio y móvil.

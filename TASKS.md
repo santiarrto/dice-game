@@ -158,7 +158,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## Etapa 2 — Personalización y funcionalidades ampliadas
 
-Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decisiones están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas. El logo de T18 fue proporcionado por el dueño del producto.
+Las tareas T11–T26 amplían el MVP sin alterar las reglas del juego. Las decisiones están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas. El logo de T18 fue proporcionado por el dueño del producto.
 
 ## T11 — Definir catálogo y modelo de avatares
 
@@ -243,7 +243,7 @@ Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T17 — Añadir inglés y español
 
-**Estado:** ✅ Completada para la interfaz existente. Las páginas informativas se crearán en ambos idiomas en T19 y T20.
+**Estado:** ✅ Completada para la interfaz existente. Las páginas de contacto y preguntas frecuentes ya están traducidas.
 
 **Dependencias:** T10.
 
@@ -268,7 +268,7 @@ Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T19 — Crear páginas de contacto y sugerencias
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada.
 
 **Dependencias:** T10 y T17.
 
@@ -281,7 +281,7 @@ Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T20 — Crear la página de preguntas frecuentes
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. Las preguntas frecuentes están disponibles en inglés y español.
 
 **Dependencias:** T10 y T17.
 
@@ -293,7 +293,7 @@ Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T21 — Simplificar el cierre del turno cuando queda un dado
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. El último dado se aparta automáticamente y el resultado se resuelve al confirmar el turno.
 
 **Dependencias:** T07 y T09.
 
@@ -306,7 +306,7 @@ Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T23 — Señalar con una corona a los líderes
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. La mesa identifica a todos los líderes activos con una corona y una etiqueta localizada.
 
 **Dependencias:** T07 y T09.
 
@@ -343,14 +343,32 @@ Las tareas T11–T25 amplían el MVP sin alterar las reglas del juego. Las decis
 
 **Aceptación:** cada participante muestra en el tablero el mismo avatar que eligió en la configuración, con su nombre y estado legibles; los casos de avatar no disponible tienen un reemplazo comprensible y la vista funciona en móvil.
 
+## T26 — Crear la página «About» y contar la historia del juego
+
+**Estado:** ⚪ No asignada.
+
+**Dependencias:** T17 y T19.
+
+- Añadir a la navegación una página «About» / «Acerca de» en inglés y español, accesible con teclado y adaptable a móvil.
+- Explicar brevemente en qué consiste el juego sin contradecir las reglas de [README.md](./README.md).
+- Acreditar a Santiago Arredondo como desarrollador y contar, en tono de anécdota, que el proyecto se desarrolló después de compartir partidas durante los almuerzos con compañeros de trabajo, cuando apostaban y pasaban el rato.
+- Presentar las apuestas únicamente como parte del recuerdo, sin añadir apuestas, pagos ni dinero real a la aplicación.
+- Cubrir la navegación, el contenido y el cambio de idioma con pruebas.
+
+**Texto base sugerido:**
+
+> Durante las horas de almuerzo, Santiago Arredondo y sus compañeros de trabajo compartían partidas de dados. Entre apuestas y tiradas, el juego se convirtió en una manera de pasar el rato juntos. Después de aquellas partidas, Santiago desarrolló esta aplicación para llevar la experiencia a la pantalla.
+
+**Aceptación:** la página explica el juego, acredita al desarrollador y relata la anécdota en ambos idiomas; se puede visitar y regresar con teclado y en móvil, sin modificar las reglas ni incorporar apuestas.
+
 ## T22 — Validar e integrar la Etapa 2
 
 **Estado:** ⚪ No asignada.
 
-**Dependencias:** T14, T15, T16, T17, T18, T19, T20, T21, T23, T24 y T25.
+**Dependencias:** T14, T15, T16, T17, T18, T19, T20, T21, T23, T24, T25 y T26.
 
 - Añadir pruebas unitarias y de integración para catálogo/migración de avatares, avatares en tablero/resultados/historial, configuración humana/IA, políticas de IA, ranking, indicador de líderes, traducciones, páginas nuevas, cierre automático con un dado y ataque automático al único objetivo.
-- Extender las pruebas de navegador para escritorio, móvil, selección de idioma, juego mixto, ranking, historial, avatares en el tablero, confirmación de cierre de turno y ataque automático cuando solo quede un objetivo.
+- Extender las pruebas de navegador para escritorio, móvil, selección de idioma, juego mixto, ranking, historial, avatares en el tablero, página «About», confirmación de cierre de turno y ataque automático cuando solo quede un objetivo.
 - Ejecutar lint, pruebas unitarias, pruebas de navegador y build; actualizar la documentación.
 
-**Aceptación:** las funcionalidades de T11–T21 y T23–T25 cumplen sus criterios, las pruebas pasan, no hay errores de consola en flujos críticos y el archivo de logo requerido está integrado.
+**Aceptación:** las funcionalidades de T11–T21 y T23–T26 cumplen sus criterios, las pruebas pasan, no hay errores de consola en flujos críticos y el archivo de logo requerido está integrado.

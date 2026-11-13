@@ -10,6 +10,7 @@ import {
 import {
   advanceTurn,
   chooseAttack,
+  confirmTurn,
   rollGameDice,
   selectGameDice,
   type GameFlow,
@@ -123,6 +124,7 @@ export function playAiStep(flow: GameFlow, random: RandomSource = Math.random): 
       ? rollGameDice(flow, random)
       : selectGameDice(flow, chooseAiDice(flow.game, current.difficulty, random))
   }
+  if (flow.phase === 'confirm-turn') return confirmTurn(flow)
   if (flow.phase === 'choose-target') {
     return chooseAttack(flow, chooseAiDirection(flow.game, flow.points, current.difficulty, random))
   }

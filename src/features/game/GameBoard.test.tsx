@@ -26,6 +26,53 @@ function keepAll() {
 }
 
 describe('mesa de juego', () => {
+  it('marca a todos los líderes activos y actualiza las coronas al cambiar marcadores y eliminar', () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    render(<GameBoard game={createGame(['Ana', 'Luis', 'Eva', 'Sol'], 10, 'manual')} onReturn={vi.fn()} />)
+    const rows = within(screen.getByRole('complementary', { name: 'Jugadores' })).getAllByRole('listitem')
+    function expectLeaders(indexes: number[]) {
+      for (const [index, row] of rows.entries()) {
+        if (indexes.includes(index)) {
+          const label = within(row).getByText('Líder').parentElement
+          if (!label) throw new Error('Falta el indicador de liderazgo.')
+          expect(label).toBeVisible()
+          expect(within(label).getByText('👑')).toHaveAttribute('aria-hidden', 'true')
+        } else {
+          expect(within(row).queryByText('Líder')).not.toBeInTheDocument()
+        }
+      }
+    }
+
+    expectLeaders([0, 1, 2, 3])
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    keepAll()
+    expectLeaders([0, 1, 2, 3])
+    fireEvent.click(screen.getByRole('radio', { name: 'Siguiente: Luis' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar ataque' }))
+    expectLeaders([0, 2, 3])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    keepAll()
+    fireEvent.click(screen.getByRole('radio', { name: 'Anterior: Ana' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar ataque' }))
+    expectLeaders([2, 3])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    keepAll()
+    fireEvent.click(screen.getByRole('radio', { name: 'Siguiente: Sol' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar ataque' }))
+    expectLeaders([2])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
+    random.mockReturnValue(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    keepAll()
+    expect(rows[3]).toHaveTextContent('Eliminado')
+    expectLeaders([2])
+  })
+
   it('juega automáticamente y guarda una sola vez la victoria en modo estricto', () => {
     vi.useFakeTimers()
     vi.spyOn(Math, 'random').mockReturnValue(0)
@@ -56,6 +103,25 @@ describe('mesa de juego', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Seguir jugando' }))
     act(() => vi.advanceTimersByTime(650))
     expect(die(1)).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('la IA confirma automáticamente después de apartar su último dado', () => {
+    vi.useFakeTimers()
+    let calls = 0
+    vi.spyOn(Math, 'random').mockImplementation(() => ++calls === 7 ? 0.48 : 0)
+    render(<GameBoard game={createGame([
+      { name: 'IA', avatarId: 'player1', kind: 'ai', difficulty: 'easy' },
+      'Ana',
+    ], 10, 'manual')} onReturn={vi.fn()} />)
+    act(() => vi.advanceTimersByTime(650))
+    act(() => vi.advanceTimersByTime(650))
+    act(() => vi.advanceTimersByTime(650))
+    expect(die(6)).toBeDisabled()
+    expect(screen.getByText(/IA está confirmando su turno/)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Confirmar turno' })).toBeDisabled()
+    act(() => vi.advanceTimersByTime(650))
+    expect(screen.getByRole('status')).toHaveTextContent('Ganador: Ana')
+    expect(loadHistory()).toHaveLength(1)
   })
 
   it('resuelve un ataque de la IA y entrega el control al siguiente jugador', () => {
@@ -102,6 +168,61 @@ describe('mesa de juego', () => {
     expect(die(1)).toHaveAccessibleName('Dado 1: valor 4, apartado')
     expect(die(3)).toHaveAccessibleName('Dado 3: valor 6, disponible, último lanzamiento')
     expect(screen.getByText(/Suma seleccionada:/)).toHaveTextContent('8')
+  })
+
+  it('aparta el único dado y espera confirmación antes de resolver el turno', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.7)
+    render(<GameBoard game={createGame(['Ana', 'Luis'], 20, 'manual')} onReturn={vi.fn()} />)
+    for (const numbers of [[1, 2], [3, 4], [5]]) {
+      fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+      for (const number of numbers) fireEvent.click(die(number))
+      fireEvent.click(screen.getByRole('button', { name: 'Apartar seleccionados' }))
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    expect(die(6)).toBeDisabled()
+    expect(die(6)).toHaveAccessibleName('Dado 6: valor 5, apartado, último lanzamiento')
+    expect(screen.getByText(/Suma seleccionada:/)).toHaveTextContent('30')
+    expect(screen.getByText(/último dado se apartó automáticamente/)).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Lanzar dados' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Apartar seleccionados' })).not.toBeInTheDocument()
+    const confirm = screen.getByRole('button', { name: 'Confirmar turno' })
+    expect(confirm).toHaveFocus()
+    fireEvent.click(confirm)
+    expect(screen.getByText(/Los marcadores no cambian/)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Siguiente turno' })).toHaveFocus()
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
+    expect(screen.getByText(/Juega:/)).toHaveTextContent('Luis')
+  })
+
+  it('confirma el último dado antes de solicitar el objetivo de ataque', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    render(<GameBoard game={createGame(['Ana', 'Luis', 'Eva'], 10, 'manual')} onReturn={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    for (let number = 1; number <= 5; number++) fireEvent.click(die(number))
+    fireEvent.click(screen.getByRole('button', { name: 'Apartar seleccionados' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    expect(screen.queryByRole('radio', { name: 'Anterior: Eva' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar turno' }))
+    const previous = screen.getByRole('radio', { name: 'Anterior: Eva' })
+    expect(previous).toHaveFocus()
+    fireEvent.click(previous)
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar ataque' }))
+    expect(screen.getByText(/ataque descuenta 6 puntos a Eva/)).toBeVisible()
+    expect(within(screen.getByRole('list')).getAllByRole('listitem')[2]).toHaveTextContent('4 puntos')
+  })
+
+  it('muestra y guarda la victoria solo al confirmar el último dado', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    render(<GameBoard game={createGame(['Ana', 'Luis'], 10, 'manual')} onReturn={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    for (let number = 1; number <= 5; number++) fireEvent.click(die(number))
+    fireEvent.click(screen.getByRole('button', { name: 'Apartar seleccionados' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    expect(loadHistory()).toHaveLength(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar turno' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Ganador: Luis')
+    expect(screen.getByRole('button', { name: 'Nueva partida' })).toHaveFocus()
+    expect(loadHistory()).toHaveLength(1)
   })
 
   it('pide confirmar un objetivo y actualiza los marcadores y turnos', () => {
@@ -160,6 +281,7 @@ describe('mesa de juego', () => {
     keepAll()
     expect(screen.getByText(/Ana queda eliminado/)).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Ganador: Luis')
+    expect(screen.queryByText('Líder')).not.toBeInTheDocument()
     expect(screen.getByText(/Resultado guardado/)).toBeInTheDocument()
     expect(screen.getByText(/Marcador inicial:/)).toHaveTextContent('10 puntos')
     expect(screen.getByText(/Turnos jugados:/)).toHaveTextContent('1')

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { PlayerAvatar } from '../../components/PlayerAvatar'
 import { selectedTotal, type DieValue, type Direction, type Game, type GameSummary, type Player } from '../../domain/game'
 import { HistoryError, saveHistory } from '../../persistence/history'
@@ -8,6 +8,7 @@ import {
   advanceTurn,
   attackTargets,
   chooseAttack,
+  confirmTurn,
   nextPlayer,
   rollGameDice,
   selectGameDice,
@@ -46,6 +47,7 @@ function turnMessage(flow: GameFlow, t: ReturnType<typeof useLanguage>['t']): st
       ? t.rollHelp
       : t.selectHelp
   }
+  if (flow.phase === 'confirm-turn') return t.lastDieKept
   if (flow.phase === 'choose-target') {
     return t.chooseTargetMessage(flow.total, flow.points)
   }
@@ -71,9 +73,13 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
   const [attackDirection, setAttackDirection] = useState<Direction | null>(null)
   const [confirmExit, setConfirmExit] = useState(false)
   const [saveError, setSaveError] = useState<HistoryError | null>(null)
+  const nextAction = useRef<HTMLButtonElement>(null)
+  const attackInput = useRef<HTMLInputElement>(null)
+  const previousPhase = useRef(flow.phase)
 
   const { turn, players, currentPlayerId, lastPlayerId } = flow.game
   const current = playerById(players, currentPlayerId)
+  const highestScore = Math.max(...players.map((player) => player.score))
   const isAiTurn = current.kind === 'ai'
   const upcoming = nextPlayer(flow)
   const choosingDice = !isAiTurn && flow.phase === 'playing' && turn.phase === 'selecting'
@@ -138,6 +144,15 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
   }
 
   useEffect(() => {
+    if (!isAiTurn && (flow.phase === 'confirm-turn'
+      || previousPhase.current === 'confirm-turn' || previousPhase.current === 'choose-target')) {
+      const target = flow.phase === 'choose-target' ? attackInput.current : nextAction.current
+      target?.focus()
+    }
+    previousPhase.current = flow.phase
+  }, [flow.phase, isAiTurn])
+
+  useEffect(() => {
     if (!isAiTurn || flow.phase === 'finished' || confirmExit) return
     const timer = window.setTimeout(() => {
       if (flow.phase === 'playing' && flow.game.turn.phase === 'ready') {
@@ -188,7 +203,7 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
         ) : (
           <p>{t.saved}</p>
         )}
-        <button className="start-button" onClick={onReturn} type="button">{t.newGame}</button>
+        <button className="start-button" onClick={onReturn} ref={nextAction} type="button">{t.newGame}</button>
       </section>
     )
   }
@@ -253,9 +268,11 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
         <p aria-atomic="true" aria-live="polite" className="game-message">
           {isAiTurn && flow.phase === 'playing'
             ? turn.phase === 'ready' ? t.aiRolling : t.aiSelecting
-            : isAiTurn && flow.phase === 'choose-target'
-              ? t.aiTarget(flow.total)
-              : turnMessage(flow, t)}
+            : isAiTurn && flow.phase === 'confirm-turn'
+              ? t.aiConfirming
+              : isAiTurn && flow.phase === 'choose-target'
+                ? t.aiTarget(flow.total)
+                : turnMessage(flow, t)}
         </p>
         {turn.rollCount === 5 && flow.phase !== 'playing' && (
           <p>{t.fifthRoll}</p>
@@ -271,12 +288,23 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
             </button>
           </div>
         )}
+        {flow.phase === 'confirm-turn' && (
+          <button
+            className="start-button"
+            disabled={isAiTurn}
+            onClick={() => updateFlow(confirmTurn(flow))}
+            ref={nextAction}
+            type="button"
+          >
+            {t.confirmTurn}
+          </button>
+        )}
         {flow.phase === 'choose-target' && (
           <div>
             <fieldset className="attack-options">
               <legend>{t.attackTarget}</legend>
               <label>
-                <input checked={attackDirection === 'previous'} disabled={isAiTurn} name="attack-direction" onChange={() => setAttackDirection('previous')} type="radio" />
+                <input checked={attackDirection === 'previous'} disabled={isAiTurn} name="attack-direction" onChange={() => setAttackDirection('previous')} ref={attackInput} type="radio" />
                 {t.previous} {attackTargets(flow).previous.name}
               </label>
               <label>
@@ -298,7 +326,7 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
           </div>
         )}
         {flow.phase === 'turn-complete' && (
-          <button className="start-button" disabled={isAiTurn} onClick={advance} type="button">{t.nextTurn}</button>
+          <button className="start-button" disabled={isAiTurn} onClick={advance} ref={nextAction} type="button">{t.nextTurn}</button>
         )}
         <div className="game-exit">
           {confirmExit ? (
@@ -325,7 +353,12 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
               key={player.id}
             >
               <div className="scoreboard__name">
-                <strong>{player.name}</strong>
+                <div className="scoreboard__player-name">
+                  <strong>{player.name}</strong>
+                  {player.score > 0 && player.score === highestScore && (
+                    <span className="scoreboard__leader"><span aria-hidden="true">👑</span> <span>{t.leader}</span></span>
+                  )}
+                </div>
                 <span>{player.score} {t.points}</span>
               </div>
               <div className="scoreboard__tags">

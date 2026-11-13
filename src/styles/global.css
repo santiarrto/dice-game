@@ -32,7 +32,9 @@ input[type="radio"] {
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
-summary:focus-visible {
+summary:focus-visible,
+a:focus-visible,
+.info-panel h2:focus-visible {
   outline: 3px solid #b45309;
   outline-offset: 3px;
 }
@@ -94,6 +96,63 @@ summary:focus-visible {
 .welcome__header > p:last-child {
   margin: 0.7rem 0 0;
   color: #52617b;
+}
+
+.welcome__nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.welcome__nav button {
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #c5d3e8;
+  border-radius: 0.6rem;
+  background: #fff;
+  color: #1e40af;
+  font-weight: 650;
+}
+
+.welcome__nav button[aria-current="page"] {
+  border-color: #1d4ed8;
+  background: #eaf1ff;
+}
+
+.info-panel {
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid #e1e8f2;
+  border-radius: 1.25rem;
+  background: #fff;
+}
+
+.info-panel h2 {
+  margin-top: 0;
+  color: #15264c;
+}
+
+.info-panel a {
+  color: #1e40af;
+  overflow-wrap: anywhere;
+}
+
+.faq-item + .faq-item {
+  border-top: 1px solid #e1e8f2;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+}
+
+.faq-item h3 {
+  margin: 0 0 0.4rem;
+  color: #15264c;
+  font-size: 1rem;
+}
+
+.faq-item p {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .setup-form {
@@ -856,6 +915,22 @@ summary:focus-visible {
 
 .scoreboard__name strong {
   min-width: 0;
+}
+
+.scoreboard__player-name {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.scoreboard__leader {
+  color: #854d0e;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .scoreboard__tags {

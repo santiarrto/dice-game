@@ -4,6 +4,7 @@ import {
   advanceTurn,
   attackTargets,
   chooseAttack,
+  confirmTurn,
   nextPlayer,
   rollGameDice,
   selectGameDice,
@@ -72,6 +73,67 @@ describe('flujo de la partida', () => {
     expect(() => rollGameDice(flow)).toThrow()
     expect(() => selectGameDice(flow, [4])).toThrow()
     expect(() => chooseAttack(flow, 'next')).toThrow()
+  })
+
+  it.each([
+    [[0, 1, 2, 3], [4]],
+    [[0, 1], [2, 3], [4]],
+    [[0], [1], [2], [3, 4]],
+  ])('aparta el único dado y espera confirmación tras las selecciones %j', (...selections: number[][]) => {
+    let flow = startGame(createGame(['Ana', 'Luis'], 20, 'manual'))
+    expect(() => confirmTurn(flow)).toThrow()
+    for (const ids of selections) flow = selectGameDice(rollGameDice(flow, () => 0.7), ids)
+    flow = rollGameDice(flow, () => 0.7)
+    expect(flow.phase).toBe('confirm-turn')
+    expect(flow.game.turn.rollCount).toBe(selections.length + 1)
+    expect(flow.game.turn.dice.every((die) => die.locked && die.value === 5)).toBe(true)
+    expect(flow.game.players.map((player) => player.score)).toEqual([20, 20])
+    expect(flow.game.turnCount).toBe(0)
+    expect(() => rollGameDice(flow)).toThrow()
+    expect(() => selectGameDice(flow, [5])).toThrow()
+    expect(() => advanceTurn(flow)).toThrow()
+    flow = confirmTurn(flow)
+    expect(flow.phase).toBe('turn-complete')
+    if (flow.phase !== 'turn-complete') throw new Error('El turno debería estar resuelto.')
+    expect(flow.result.total).toBe(30)
+    expect(flow.game.turnCount).toBe(1)
+    expect(() => confirmTurn(flow)).toThrow()
+  })
+
+  it('tras confirmar el último dado conserva la elección de ataque y la eliminación', () => {
+    let flow = startGame(createGame(['Ana', 'Luis', 'Eva'], 10, 'manual'))
+    flow = selectGameDice(rollGameDice(flow, () => 0.99), [0, 1, 2, 3, 4])
+    flow = rollGameDice(flow, () => 0.99)
+    expect(flow.phase).toBe('confirm-turn')
+    flow = confirmTurn(flow)
+    expect(flow.phase).toBe('choose-target')
+    expect(attackTargets(flow).previous.name).toBe('Eva')
+    expect(() => advanceTurn(flow)).toThrow()
+    flow = chooseAttack(flow, 'previous')
+    expect(flow.game.players.map((player) => player.score)).toEqual([10, 10, 4])
+    expect(flow.game.turnCount).toBe(1)
+    flow = advanceTurn(flow)
+    expect(flow.game.currentPlayerId).toBe('player-2')
+    flow = selectGameDice(rollGameDice(flow, () => 0.99), [0, 1, 2, 3, 4])
+    flow = confirmTurn(rollGameDice(flow, () => 0.99))
+    flow = chooseAttack(flow, 'next')
+    expect(flow.game.players.map((player) => player.score)).toEqual([10, 10, 0])
+    expect(flow.game.eliminationOrder).toEqual(['player-3'])
+    expect(advanceTurn(flow).game.currentPlayerId).toBe('player-1')
+  })
+
+  it('aplica la eliminación propia solo al confirmar el último dado', () => {
+    let flow = startGame(createGame(['Ana', 'Luis'], 10, 'manual'))
+    flow = selectGameDice(rollGameDice(flow, () => 0), [0, 1, 2, 3, 4])
+    flow = rollGameDice(flow, () => 0)
+    expect(flow.phase).toBe('confirm-turn')
+    expect(flow.game.players[0].score).toBe(10)
+    flow = confirmTurn(flow)
+    expect(flow.phase).toBe('finished')
+    if (flow.phase !== 'finished') throw new Error('La partida debería haber terminado.')
+    expect(flow.winnerId).toBe('player-2')
+    expect(flow.game.players[0].score).toBe(0)
+    expect(flow.game.eliminationOrder).toEqual(['player-1'])
   })
 
   it('espera el objetivo del ataque y salta eliminados al avanzar y atacar', () => {

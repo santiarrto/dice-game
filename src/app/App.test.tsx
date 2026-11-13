@@ -104,6 +104,26 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Keep selected' })).toBeEnabled()
   })
 
+  it('traduce la confirmación del último dado sin perder el turno', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.7)
+    render(<App />)
+    fireEvent.click(screen.getByRole('radio', { name: /Elegir manualmente/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    for (let die = 1; die <= 5; die++) {
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(`^Dado ${die}:`) }))
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Apartar seleccionados' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    fireEvent.change(screen.getByLabelText('Idioma'), { target: { value: 'en' } })
+    expect(screen.getByText(/last die was kept automatically/)).toBeVisible()
+    expect(screen.getByRole('button', { name: /^Die 6: value 5, kept/ })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm turn' }))
+    expect(screen.getByText(/Scores do not change/)).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Next turn' }))
+    expect(screen.getByText(/Playing:/)).toHaveTextContent('Jugador 2')
+  })
+
   it('traduce resultado e historial sin modificar la clasificación guardada', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0)
     render(<App />)
@@ -132,6 +152,78 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Sobrevivir' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '¿Quiénes juegan?' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Comenzar partida' })).toBeInTheDocument()
+  })
+
+  it('navega al contacto en ambos idiomas sin perder la configuración', () => {
+    render(<App />)
+    fireEvent.change(screen.getByLabelText(/Nombre del jugador 1/), { target: { value: 'Ana' } })
+    const stored = localStorage.getItem(HISTORY_KEY)
+    fireEvent.click(screen.getByRole('button', { name: 'Contacto y sugerencias' }))
+    const heading = screen.getByRole('heading', { name: 'Contacto y sugerencias' })
+    expect(heading).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Contacto y sugerencias' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'santiarrto@gmail.com' })).toHaveAttribute('href', 'mailto:santiarrto@gmail.com')
+    expect(screen.getByText(/Esta web no envía ni guarda mensajes/)).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Comenzar partida' })).not.toBeInTheDocument()
+    expect(document.title).toBe('Contacto y sugerencias | Juego de dados: sobrevivir')
+
+    fireEvent.change(screen.getByLabelText('Idioma'), { target: { value: 'en' } })
+    expect(screen.getByRole('heading', { name: 'Contact and suggestions' })).toBeVisible()
+    expect(screen.getByText(/Nothing is sent or saved by this website/)).toBeVisible()
+    expect(document.title).toBe('Contact and suggestions | Dice game: survive')
+    expect(localStorage.getItem(HISTORY_KEY)).toBe(stored)
+    fireEvent.click(screen.getByRole('button', { name: 'Home' }))
+    expect(screen.getByLabelText(/Player 1 name/)).toHaveValue('Ana')
+  })
+
+  it('presenta las preguntas frecuentes en ambos idiomas y conserva la configuración', () => {
+    render(<App />)
+    fireEvent.change(screen.getByLabelText(/Nombre del jugador 1/), { target: { value: 'Ana' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Contacto y sugerencias' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Preguntas frecuentes' }))
+    const faq = screen.getByRole('region', { name: 'Preguntas frecuentes' })
+    expect(within(faq).getByRole('heading', { level: 2 })).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Preguntas frecuentes' })).toHaveAttribute('aria-current', 'page')
+    expect(document.title).toBe('Preguntas frecuentes | Juego de dados: sobrevivir')
+    expect(within(faq).getAllByRole('heading', { level: 3 })).toHaveLength(9)
+    for (const answer of [
+      /de 2 a 8 participantes.*manualmente o sortéalo/,
+      /20 puntos por defecto.*entre 10 y 50/,
+      /seis dados hasta cinco veces.*aparta al menos un dado.*no se vuelven a lanzar/,
+      /dados restantes que se lanzaron en el quinto lanzamiento.*aunque no se hayan apartado/,
+      /menor que 30.*pierde la diferencia.*igual a 30.*ningún marcador cambia.*mayor que 30.*excedente/,
+      /jugador activo anterior o siguiente.*saltan los jugadores eliminados/,
+      /no baja de cero.*pérdida excedente se descarta.*última persona activa.*orden inverso de eliminación/,
+      /persona o IA.*fácil, media o difícil/,
+      /10 partidas terminadas.*solo en este navegador.*no se puede reanudar/,
+    ]) expect(within(faq).getByText(answer)).toBeVisible()
+
+    fireEvent.change(screen.getByLabelText('Idioma'), { target: { value: 'en' } })
+    const englishFaq = screen.getByRole('region', { name: 'Frequently asked questions' })
+    expect(within(englishFaq).getAllByRole('heading', { level: 3 })).toHaveLength(9)
+    expect(document.title).toBe('Frequently asked questions | Dice game: survive')
+    for (const answer of [
+      /2 to 8 participants.*manually or shuffle/,
+      /20 points by default.*from 10 to 50/,
+      /six dice up to five times.*keep at least one die.*cannot be rolled again/,
+      /remaining dice rolled on the fifth roll count.*not kept/,
+      /Below 30.*loses the difference.*At 30.*no score changes.*Above 30.*excess/,
+      /previous or next active player.*Eliminated players are skipped/,
+      /cannot drop below zero.*excess damage is discarded.*last active player wins.*reverse elimination order/,
+      /human or AI.*easy, medium or hard/,
+      /last 10 completed games.*browser only.*cannot be resumed/,
+    ]) expect(within(englishFaq).getByText(answer)).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Home' }))
+    expect(screen.getByLabelText(/Player 1 name/)).toHaveValue('Ana')
+  })
+
+  it('oculta la navegación durante una partida y la recupera al salir', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+    expect(screen.queryByRole('navigation', { name: 'Navegación principal' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Volver a configurar' }))
+    expect(screen.getByRole('button', { name: 'Contacto y sugerencias' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Preguntas frecuentes' })).toBeVisible()
   })
 
   it('prepara la partida con el orden manual y permite volver a configurar', () => {

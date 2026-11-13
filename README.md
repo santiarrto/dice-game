@@ -2,11 +2,11 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> ✅ **Estado del proyecto:** MVP validado. La Etapa 2 está en curso: se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente, los resultados y el historial muestran avatares y clasificación final, y la interfaz admite inglés y español. El logo también aparece en la aplicación y en la pestaña. Los avatares en el tablero durante la partida y las páginas informativas están pendientes.
+> ✅ **Estado del proyecto:** MVP validado. La Etapa 2 está en curso: se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente, los resultados y el historial muestran avatares y clasificación final, y la interfaz, la página de contacto y las preguntas frecuentes admiten inglés y español. El logo aparece en la aplicación y en la pestaña, el último dado disponible se aparta automáticamente y una corona identifica a los líderes durante la partida. Los avatares en el tablero durante la partida y la página «About» están pendientes.
 
 Cada participante IA tiene una dificultad: fácil elige acciones legales al azar; media busca acercarse a 30; y difícil considera los marcadores, la supervivencia y los objetivos de ataque. Las dos últimas usan una estimación del resultado suponiendo un lanzamiento futuro de los dados restantes, no una optimización exhaustiva de todos los lanzamientos posibles.
 
-La página de contacto abrirá un mensaje de correo dirigido a `santiarrto@gmail.com`; no se almacenarán ni enviarán sugerencias mediante un backend. El logo y el favicon usan versiones optimizadas de la imagen proporcionada en `src/assets/icon.jpg`. El alcance detallado está en [PLANNING.md](./PLANNING.md) y sus tareas en [TASKS.md](./TASKS.md).
+La página de contacto incluye un enlace que abre un mensaje de correo dirigido a `santiarrto@gmail.com`; no se almacenan ni envían sugerencias mediante un backend. Las preguntas frecuentes explican las reglas y funciones principales. Ambas páginas son accesibles desde la bienvenida y la configuración se conserva al volver. Durante una partida la navegación se oculta para evitar abandonarla accidentalmente. El logo y el favicon usan versiones optimizadas de la imagen proporcionada en `src/assets/icon.jpg`. El alcance detallado está en [PLANNING.md](./PLANNING.md) y sus tareas en [TASKS.md](./TASKS.md).
 
 ## 🚀 Requisitos
 
@@ -78,6 +78,8 @@ En su turno, cada jugador lanza los seis dados y puede hacer hasta **5 lanzamien
 
 Cada dado se cuenta una sola vez. Apartar un dado significa que ya no se vuelve a lanzar durante ese turno.
 
+Si solo queda un dado disponible, se aparta automáticamente al lanzarlo. Confirma el turno para resolver el resultado; si corresponde un ataque, todavía debes elegir su dirección. Después se muestra el resultado antes de continuar.
+
 ## ⚖️ Resultado del turno
 
 Compara la suma de los dados con **30**:
@@ -87,6 +89,8 @@ Compara la suma de los dados con **30**:
 - ⚔️ **Más de 30:** el excedente sobre 30 se usa para atacar. El jugador elige como objetivo a la persona activa más cercana que siga en la partida, en el sentido siguiente o anterior al orden de turnos. El objetivo pierde esa cantidad de puntos.
 
 Los puntos de vida no bajan de cero. Quien llega a cero queda eliminado y ya no toma turnos ni puede ser objetivo. Si la pérdida supera los puntos que le quedaban, el excedente se descarta. Después de una eliminación, la ronda continúa con el siguiente jugador activo en el orden establecido, saltando a quienes hayan sido eliminados.
+
+En la mesa, una corona señala a cada jugador activo con el marcador más alto; si hay empate, todos los líderes la reciben. La corona no determina la clasificación final.
 
 ## 📊 Valores posibles
 

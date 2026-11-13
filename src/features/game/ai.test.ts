@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createGame, rollDice, selectDice, type AiDifficulty } from '../../domain/game'
 import { chooseAiDice, chooseAiDirection, playAiStep } from './ai'
-import { startGame } from './gameFlow'
+import { rollGameDice, selectGameDice, startGame } from './gameFlow'
 
 function aiGame(difficulty: AiDifficulty) {
   return createGame([
@@ -74,6 +74,17 @@ describe('decisiones de IA', () => {
     expect(flow.game.turn.rollCount).toBeLessThanOrEqual(5)
     expect(flow.game.turn.dice.every((die) => die.locked)).toBe(true)
     expect(() => playAiStep(flow, () => 0)).toThrow()
+  })
+
+  it('confirma automáticamente el último dado de la IA', () => {
+    let flow = startGame(aiGame('easy'))
+    flow = selectGameDice(rollGameDice(flow, () => 0), [0, 1, 2, 3, 4])
+    flow = playAiStep(flow, () => 0)
+    expect(flow.phase).toBe('confirm-turn')
+    flow = playAiStep(flow, () => 0)
+    expect(flow.phase).toBe('finished')
+    if (flow.phase !== 'finished') throw new Error('La partida debería haber terminado.')
+    expect(flow.winnerId).toBe('player-2')
   })
 
   it('rechaza ejecutar IA durante un turno humano', () => {
