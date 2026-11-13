@@ -34,6 +34,115 @@ async function setRandomValue(page: Page, value: number) {
 }
 
 for (const viewport of [{ width: 320, height: 780 }, { width: 1280, height: 900 }]) {
+  test(`reproduce y cierra el video de ayuda con teclado en ${viewport.width}px`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text())
+    })
+    await page.setViewportSize(viewport)
+    await page.goto('/')
+    await page.getByLabel('Player 1 name').fill('Ana')
+    const help = page.getByRole('button', { name: 'How to play' })
+    await help.focus()
+    await page.keyboard.press('Enter')
+    const dialog = page.getByRole('dialog', { name: 'How to play' })
+    const video = page.locator('dialog video')
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toHaveJSProperty('open', true)
+    await expect(dialog.getByRole('button', { name: 'Close' })).toBeFocused()
+    await expect(video).toHaveAttribute('controls', '')
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.currentTime > 0), { timeout: 15_000 }).toBe(true)
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.keyboard.press('Enter')
+    await expect(dialog).not.toBeVisible()
+    await expect(video).toHaveJSProperty('paused', true)
+    await expect(help).toBeFocused()
+    await expect(page.getByLabel('Player 1 name')).toHaveValue('Ana')
+
+    await page.getByLabel('Language').selectOption('es')
+    const spanishHelp = page.getByRole('button', { name: 'Cómo jugar' })
+    await spanishHelp.focus()
+    await page.keyboard.press('Enter')
+    const spanishDialog = page.getByRole('dialog', { name: 'Cómo jugar' })
+    await expect(spanishDialog.getByRole('button', { name: 'Cerrar' })).toBeFocused()
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused), { timeout: 15_000 }).toBe(true)
+    await page.keyboard.press('Escape')
+    await expect(spanishDialog).not.toBeVisible()
+    await expect(video).toHaveJSProperty('paused', true)
+    await expect(spanishHelp).toBeFocused()
+    await expect(page.getByLabel(/Nombre del jugador 1/)).toHaveValue('Ana')
+    await page.getByRole('button', { name: 'Comenzar partida' }).click()
+    await expect(page.getByRole('button', { name: 'Cómo jugar' })).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test(`informa si el video de ayuda no carga en ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport)
+    await page.goto('/')
+    await page.route('**/assets/video/dice-brawl.mp4*', (route) => route.abort())
+    const spanish = viewport.width === 320
+    if (spanish) await page.getByLabel('Language').selectOption('es')
+    const help = page.getByRole('button', { name: spanish ? 'Cómo jugar' : 'How to play' })
+    await help.click()
+    const dialog = page.getByRole('dialog', { name: spanish ? 'Cómo jugar' : 'How to play' })
+    await expect(dialog.getByRole('alert')).toContainText(spanish ? 'No se pudo reproducir el video' : 'The video could not be played')
+    await dialog.getByRole('button', { name: spanish ? 'Cerrar' : 'Close' }).click()
+    await expect(help).toBeFocused()
+  })
+
+  test(`muestra los avatares de la mesa y su alternativa en ${viewport.width}px`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text())
+    })
+    await page.setViewportSize(viewport)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await useSpanish(page)
+    await page.goto('/')
+    await page.getByLabel('Cantidad de jugadores').selectOption('3')
+    const longName = 'M'.repeat(40)
+    for (const [index, name] of [longName, 'Luis', 'Eva'].entries()) {
+      await page.getByLabel(`Nombre del jugador ${index + 1}`).fill(name)
+    }
+    for (const [player, avatar] of [[1, 7], [2, 8], [3, 7]]) {
+      await page.getByText(`Avatar del jugador ${player}: 1`).click()
+      await page.getByRole('radio', { name: `Avatar ${avatar} del jugador ${player}` }).check()
+    }
+    await page.getByRole('radio', { name: /Elegir manualmente/ }).check()
+    await page.getByRole('spinbutton', { name: 'Marcador por jugador' }).fill('10')
+    await setRandomValue(page, 0)
+    await page.getByRole('button', { name: 'Comenzar partida' }).click()
+    const rows = page.getByRole('complementary', { name: 'Jugadores' }).getByRole('listitem')
+    for (const [index, avatar] of [[0, 7], [1, 8], [2, 7]]) {
+      const image = rows.nth(index).locator('img')
+      await expect(image).toHaveAttribute('src', new RegExp(`player${avatar}`))
+      await expect(image).toHaveAttribute('alt', '')
+      await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0)
+    }
+    await expect(rows.nth(0)).toContainText(longName)
+    await expect(rows.nth(0)).toContainText('Líder')
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await rows.nth(1).locator('img').dispatchEvent('error')
+    await expect(rows.nth(1).locator('img')).toHaveAttribute('src', /player1/)
+    await expect(rows.nth(1).getByText(/se muestra el predeterminado/)).toBeVisible()
+    await rows.nth(1).locator('img').dispatchEvent('error')
+    await expect(rows.nth(1).getByText('Avatar no disponible.')).toBeVisible()
+    await expect(rows.nth(1)).toContainText('Luis')
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await rollAndKeepAll(page)
+    await expect(rows.nth(0)).toContainText('Eliminado')
+    await expect(rows.nth(0).locator('img')).toHaveAttribute('src', /player7/)
+    await page.getByRole('button', { name: 'Siguiente turno' }).click()
+    await expect(rows.nth(1)).toContainText('Actual')
+    await expect(rows.nth(2)).toContainText('Siguiente')
+    await page.getByLabel('Idioma').selectOption('en')
+    await expect(page.getByRole('complementary', { name: 'Players' }).getByText('Avatar unavailable.')).toBeVisible()
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    expect(errors).toEqual([])
+  })
+
   test(`muestra los líderes y actualiza sus coronas en ${viewport.width}px`, async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
@@ -57,8 +166,12 @@ for (const viewport of [{ width: 320, height: 780 }, { width: 1280, height: 900 
     await expect(scoreboard.getByText('Líder', { exact: true })).toHaveCount(3)
     await expect(rows.nth(0).locator('.scoreboard__leader [aria-hidden="true"]')).toHaveText('👑')
     await rollAndKeepAll(page)
-    await page.getByRole('radio', { name: 'Siguiente: Luis' }).check()
-    await page.getByRole('button', { name: 'Confirmar ataque' }).click()
+    await expect(page.getByRole('radio', { name: 'Anterior: Eva' })).toBeFocused()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByRole('radio', { name: 'Siguiente: Luis' })).toBeChecked()
+    await page.keyboard.press('Tab')
+    await expect(page.getByRole('button', { name: 'Confirmar ataque' })).toBeFocused()
+    await page.keyboard.press('Enter')
     await expect(rows.nth(0).getByText('Líder', { exact: true })).toBeVisible()
     await expect(rows.nth(1).getByText('Líder', { exact: true })).toHaveCount(0)
     await expect(rows.nth(2).getByText('Líder', { exact: true })).toBeVisible()
@@ -70,6 +183,49 @@ for (const viewport of [{ width: 320, height: 780 }, { width: 1280, height: 900 
         const bounds = label.getBoundingClientRect()
         return bounds.left >= 0 && bounds.right <= document.documentElement.clientWidth
       }))).toBe(true)
+    expect(errors).toEqual([])
+  })
+
+  test(`ataca automáticamente al único rival activo y registra la victoria en ${viewport.width}px`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text())
+    })
+    await page.setViewportSize(viewport)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await useSpanish(page)
+    await page.goto('/')
+    await page.getByLabel('Cantidad de jugadores').selectOption('3')
+    for (const [index, name] of ['Ana', 'Luis', 'Eva'].entries()) {
+      await page.getByLabel(`Nombre del jugador ${index + 1}`).fill(name)
+    }
+    await page.getByRole('radio', { name: /Elegir manualmente/ }).check()
+    await page.getByRole('spinbutton', { name: 'Marcador por jugador' }).fill('10')
+    await setRandomValue(page, 0)
+    await page.getByRole('button', { name: 'Comenzar partida' }).click()
+    await rollAndKeepAll(page)
+    await expect(page.getByText('Ana queda eliminado')).toBeVisible()
+    await page.getByRole('button', { name: 'Siguiente turno' }).click()
+    await setRandomValue(page, 0.99)
+    await rollAndKeepAll(page)
+    await expect(page.getByText(/ataque descuenta 6 puntos a Eva/)).toBeVisible()
+    await expect(page.getByRole('radio', { name: /Siguiente:|Anterior:/ })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Siguiente turno' })).toBeFocused()
+    await expect(page.getByRole('complementary', { name: 'Jugadores' }).getByRole('listitem').nth(2)).toContainText('4 puntos')
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.keyboard.press('Enter')
+    await setRandomValue(page, 0.8)
+    await rollAndKeepAll(page)
+    await page.getByRole('button', { name: 'Siguiente turno' }).click()
+    await setRandomValue(page, 0.99)
+    await rollAndKeepAll(page)
+    await expect(page.getByRole('status')).toContainText('Ganador: Luis')
+    await expect(page.getByText('Eva queda eliminado')).toBeVisible()
+    await page.reload()
+    const history = page.getByRole('region', { name: 'Historial' })
+    await expect(history).toContainText('Ganador: Luis')
+    await expect(history.locator('.history-item__ranking > li')).toHaveCount(3)
     expect(errors).toEqual([])
   })
 
@@ -100,12 +256,7 @@ for (const viewport of [{ width: 320, height: 780 }, { width: 1280, height: 900 
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
       await page.keyboard.press('Enter')
       if (scenario.attack) {
-        const target = page.getByRole('radio', { name: 'Anterior: Luis' })
-        await expect(target).toBeFocused()
-        await page.keyboard.press('Space')
-        await page.keyboard.press('Tab')
-        await expect(page.getByRole('button', { name: 'Confirmar ataque' })).toBeFocused()
-        await page.keyboard.press('Enter')
+        await expect(page.getByRole('button', { name: 'Confirmar ataque' })).toHaveCount(0)
         await expect(page.getByText(/ataque descuenta 6 puntos a Luis/)).toBeVisible()
         await expect(page.getByRole('button', { name: 'Siguiente turno' })).toBeFocused()
       } else {
@@ -146,6 +297,41 @@ for (const viewport of [{ width: 320, height: 780 }, { width: 1280, height: 900 
     await expect(spanishFaq.getByRole('heading', { level: 3 })).toHaveCount(9)
     await expect(spanishFaq.getByText(/dados restantes que se lanzaron en el quinto lanzamiento/)).toBeVisible()
     await expect(page).toHaveTitle('Preguntas frecuentes | Juego de dados: sobrevivir')
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.getByLabel('Idioma').focus()
+    await page.keyboard.press('Tab')
+    await expect(page.getByRole('button', { name: 'Inicio' })).toBeFocused()
+    await page.keyboard.press('Enter')
+    await expect(page.getByLabel(/Nombre del jugador 1/)).toHaveValue('Ana')
+    expect(errors).toEqual([])
+  })
+
+  test(`consulta la historia con teclado en ambos idiomas en ${viewport.width}px`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text())
+    })
+    await page.setViewportSize(viewport)
+    await page.goto('/')
+    await page.getByLabel('Player 1 name').fill('Ana')
+    await page.getByLabel('Language').focus()
+    for (let i = 0; i < 4; i++) await page.keyboard.press('Tab')
+    const aboutButton = page.getByRole('button', { name: 'About' })
+    await expect(aboutButton).toBeFocused()
+    await page.keyboard.press('Enter')
+    const about = page.getByRole('region', { name: 'About' })
+    await expect(about.getByRole('heading', { level: 2 })).toBeFocused()
+    await expect(aboutButton).toHaveAttribute('aria-current', 'page')
+    await expect(about.getByText(/Santiago Arredondo.*coworkers.*bets/)).toBeVisible()
+    await expect(about.getByText(/does not include betting or payments/)).toBeVisible()
+    await expect(page).toHaveTitle('About | Dice game: survive')
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.getByLabel('Language').selectOption('es')
+    const spanishAbout = page.getByRole('region', { name: 'Acerca de' })
+    await expect(spanishAbout.getByText(/Santiago Arredondo.*compañeros de trabajo.*apuestas/)).toBeVisible()
+    await expect(spanishAbout.getByText(/no incluye apuestas ni pagos/)).toBeVisible()
+    await expect(page).toHaveTitle('Acerca de | Juego de dados: sobrevivir')
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
     await page.getByLabel('Idioma').focus()
     await page.keyboard.press('Tab')
@@ -375,6 +561,36 @@ for (const viewport of [{ width: 320, height: 780 }, { width: 1280, height: 900 
   })
 }
 
+test.describe('ayuda táctil', () => {
+  test.use({ viewport: { width: 320, height: 780 }, isMobile: true, hasTouch: true })
+
+  test('abre y cierra el video sin perder la configuración', async ({ page }) => {
+    await page.goto('/')
+    await page.getByLabel('Player 1 name').fill('Ana')
+    const help = page.getByRole('button', { name: 'How to play' })
+    await help.tap()
+    const dialog = page.getByRole('dialog', { name: 'How to play' })
+    await expect(dialog).toBeVisible()
+    await expect.poll(() => dialog.locator('video').evaluate((video: HTMLVideoElement) => !video.paused && video.currentTime > 0), { timeout: 15_000 }).toBe(true)
+    await dialog.getByRole('button', { name: 'Close' }).tap()
+    await expect(dialog).not.toBeVisible()
+    await expect(page.locator('dialog video')).toHaveJSProperty('paused', true)
+    await expect(page.getByLabel('Player 1 name')).toHaveValue('Ana')
+  })
+})
+
+test('avisa cuando el navegador bloquea la reproducción del video', async ({ page }) => {
+  await page.addInitScript(() => {
+    HTMLMediaElement.prototype.play = () => Promise.reject(new DOMException('Blocked', 'NotAllowedError'))
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'How to play' }).click()
+  const dialog = page.getByRole('dialog', { name: 'How to play' })
+  await expect(dialog.getByRole('alert')).toContainText('The video could not be played')
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(page.getByRole('button', { name: 'How to play' })).toBeFocused()
+})
+
 test('registra la victoria por eliminación y conserva el historial en móvil', async ({ page }) => {
   const pageErrors: string[] = []
   const consoleErrors: string[] = []
@@ -439,8 +655,7 @@ test('permite eliminar al objetivo y registra el resultado sin errores', async (
   await configureGame(page, 0.99, 7)
 
   await rollAndKeepAll(page)
-  await page.getByRole('radio', { name: 'Siguiente: Luis' }).check()
-  await page.getByRole('button', { name: 'Confirmar ataque' }).click()
+  await expect(page.getByRole('button', { name: 'Confirmar ataque' })).toHaveCount(0)
   await expect(page.getByText(/ataque descuenta 6 puntos a Luis/)).toBeVisible()
 
   await page.getByRole('button', { name: 'Siguiente turno' }).click()
@@ -451,8 +666,6 @@ test('permite eliminar al objetivo y registra el resultado sin errores', async (
 
   await setRandomValue(page, 0.99)
   await rollAndKeepAll(page)
-  await page.getByRole('radio', { name: 'Siguiente: Luis' }).check()
-  await page.getByRole('button', { name: 'Confirmar ataque' }).click()
 
   await expect(page.getByRole('status')).toContainText('Ganador: Ana')
   await expect(page.getByText('Luis queda eliminado')).toBeVisible()

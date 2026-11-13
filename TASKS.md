@@ -158,7 +158,7 @@ Actualiza el estado al iniciar, bloquear, reanudar o completar una tarea. Una ta
 
 ## Etapa 2 — Personalización y funcionalidades ampliadas
 
-Las tareas T11–T26 amplían el MVP sin alterar las reglas del juego. Las decisiones están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas. El logo de T18 fue proporcionado por el dueño del producto.
+Las tareas T11–T27 amplían el MVP sin alterar las reglas del juego. Las decisiones están detalladas en [PLANNING.md](./PLANNING.md). Los avatares repetidos están permitidos; `player1.jpg` será el predeterminado y se usará también para partidas históricas migradas. El logo de T18 fue proporcionado por el dueño del producto.
 
 ## T11 — Definir catálogo y modelo de avatares
 
@@ -319,7 +319,7 @@ Las tareas T11–T26 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T24 — Atacar automáticamente al único objetivo disponible
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. El ataque se aplica automáticamente cuando ambas direcciones llevan al mismo rival activo.
 
 **Dependencias:** T06 y T07.
 
@@ -332,7 +332,7 @@ Las tareas T11–T26 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T25 — Mostrar en el tablero los avatares seleccionados
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. La mesa muestra los avatares seleccionados y avisa si debe usar una alternativa.
 
 **Dependencias:** T07 y T12.
 
@@ -345,7 +345,7 @@ Las tareas T11–T26 amplían el MVP sin alterar las reglas del juego. Las decis
 
 ## T26 — Crear la página «About» y contar la historia del juego
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. La página presenta el juego y su historia en ambos idiomas, con navegación accesible.
 
 **Dependencias:** T17 y T19.
 
@@ -361,14 +361,28 @@ Las tareas T11–T26 amplían el MVP sin alterar las reglas del juego. Las decis
 
 **Aceptación:** la página explica el juego, acredita al desarrollador y relata la anécdota en ambos idiomas; se puede visitar y regresar con teclado y en móvil, sin modificar las reglas ni incorporar apuestas.
 
+## T27 — Mostrar un video de cómo jugar
+
+**Estado:** ✅ Completada. La bienvenida ofrece el video local en un diálogo accesible con controles y cierre.
+
+**Dependencias:** T09 y T17.
+
+- Añadir en la bienvenida y configuración, pero no durante la partida, un botón con icono de pregunta y nombre accesible localizado para abrir el video de cómo jugar proporcionado en `src/assets/video/dice-brawl.mp4`.
+- Reproducir el video localmente en un diálogo emergente responsive, con controles de reproducción y un botón visible y localizado para cerrarlo.
+- Permitir abrir y cerrar el diálogo con teclado, gestionar el foco y detener la reproducción al cerrarlo, sin perder la configuración.
+- Mostrar un mensaje claro y localizado si no se puede cargar o reproducir el video.
+- Añadir pruebas del diálogo, la reproducción y el cierre; verificar teclado, idiomas, escritorio y móvil.
+
+**Aceptación:** el botón de ayuda abre el video en un diálogo que se puede controlar y cerrar con teclado o táctil; al cerrarlo deja de reproducirse y se conserva el estado de la aplicación.
+
 ## T22 — Validar e integrar la Etapa 2
 
-**Estado:** ⚪ No asignada.
+**Estado:** ✅ Completada. Pasaron 97 pruebas unitarias y de integración, 38 pruebas de navegador, lint y build; el logo, favicon y video también se verificaron en el build de producción.
 
-**Dependencias:** T14, T15, T16, T17, T18, T19, T20, T21, T23, T24, T25 y T26.
+**Dependencias:** T14, T15, T16, T17, T18, T19, T20, T21, T23, T24, T25, T26 y T27.
 
 - Añadir pruebas unitarias y de integración para catálogo/migración de avatares, avatares en tablero/resultados/historial, configuración humana/IA, políticas de IA, ranking, indicador de líderes, traducciones, páginas nuevas, cierre automático con un dado y ataque automático al único objetivo.
-- Extender las pruebas de navegador para escritorio, móvil, selección de idioma, juego mixto, ranking, historial, avatares en el tablero, página «About», confirmación de cierre de turno y ataque automático cuando solo quede un objetivo.
+- Extender las pruebas de navegador para escritorio, móvil, selección de idioma, juego mixto, ranking, historial, avatares en el tablero, página «About», video de ayuda, confirmación de cierre de turno y ataque automático cuando solo quede un objetivo.
 - Ejecutar lint, pruebas unitarias, pruebas de navegador y build; actualizar la documentación.
 
-**Aceptación:** las funcionalidades de T11–T21 y T23–T26 cumplen sus criterios, las pruebas pasan, no hay errores de consola en flujos críticos y el archivo de logo requerido está integrado.
+**Aceptación:** las funcionalidades de T11–T21 y T23–T27 cumplen sus criterios, las pruebas pasan, no hay errores de consola en flujos críticos y el archivo de logo requerido está integrado.

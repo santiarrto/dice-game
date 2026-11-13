@@ -121,6 +121,70 @@ a:focus-visible,
   background: #eaf1ff;
 }
 
+.help-video {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.help-video__open,
+.help-video__header button {
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #c5d3e8;
+  border-radius: 0.6rem;
+  background: #fff;
+  color: #1e40af;
+  font-weight: 650;
+}
+
+.help-video__icon {
+  display: inline-grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 0.5rem;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.help-video__dialog {
+  width: min(100% - 2rem, 50rem);
+  max-height: calc(100dvh - 2rem);
+  padding: 1rem;
+  border: 1px solid #c5d3e8;
+  border-radius: 1rem;
+  color: #172554;
+  background: #fff;
+}
+
+.help-video__dialog::backdrop {
+  background: rgb(15 23 42 / 70%);
+}
+
+.help-video__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.help-video__header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.help-video__dialog video {
+  display: block;
+  width: 100%;
+  max-height: 70dvh;
+  background: #000;
+}
+
+.help-video__dialog [role="alert"] {
+  color: #991b1b;
+}
+
 .info-panel {
   padding: clamp(1.25rem, 4vw, 2rem);
   border: 1px solid #e1e8f2;

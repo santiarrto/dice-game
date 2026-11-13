@@ -161,8 +161,8 @@ describe('flujo de la partida', () => {
     expect(flow.game.turn.rollCount).toBe(0)
 
     flow = rollAndKeepAll(flow, 0.99)
-    expect(attackTargets(flow).previous.name).toBe('Ana')
-    flow = chooseAttack(flow, 'previous')
+    expect(flow.phase).toBe('turn-complete')
+    expect(() => attackTargets(flow)).toThrow()
     expect(flow.game.players.map((player) => player.score)).toEqual([4, 0, 10])
     expect(nextPlayer(flow)?.name).toBe('Ana')
     expect(flow.game.turnCount).toBe(3)
@@ -170,7 +170,12 @@ describe('flujo de la partida', () => {
 
   it('permite jugar hasta la victoria y evita procesar el turno dos veces', () => {
     let flow = startGame(createGame(['Ana', 'Luis'], 10, 'manual'))
-    flow = chooseAttack(rollAndKeepAll(flow, 0.99), 'next')
+    flow = rollAndKeepAll(flow, 0.99)
+    expect(flow.phase).toBe('turn-complete')
+    if (flow.phase !== 'turn-complete') throw new Error('El turno debería estar resuelto.')
+    expect(flow.result.targetId).toBe('player-2')
+    expect(flow.game.players.map((player) => player.score)).toEqual([10, 4])
+    expect(() => chooseAttack(flow, 'next')).toThrow()
     flow = advanceTurn(flow)
     flow = rollAndKeepAll(flow, 0.7)
     expect(flow.phase).toBe('turn-complete')
@@ -178,7 +183,7 @@ describe('flujo de la partida', () => {
     expect(flow.result.outcome).toEqual({ kind: 'neutral', points: 0 })
     expect(flow.game.players.map((player) => player.score)).toEqual([10, 4])
     flow = advanceTurn(flow)
-    flow = chooseAttack(rollAndKeepAll(flow, 0.99), 'previous')
+    flow = rollAndKeepAll(flow, 0.99)
 
     expect(flow.phase).toBe('finished')
     if (flow.phase !== 'finished') throw new Error('La partida debería haber terminado.')
@@ -191,6 +196,35 @@ describe('flujo de la partida', () => {
     expect(() => advanceTurn(flow)).toThrow()
     expect(() => rollGameDice(flow)).toThrow()
     expect(() => chooseAttack(flow, 'previous')).toThrow()
+  })
+
+  it('resuelve el ataque al único objetivo tras confirmar el último dado', () => {
+    let flow = startGame(createGame(['Ana', 'Luis'], 20, 'manual'))
+    flow = selectGameDice(rollGameDice(flow, () => 0.99), [0, 1, 2, 3, 4])
+    flow = rollGameDice(flow, () => 0.99)
+    expect(flow.phase).toBe('confirm-turn')
+    expect(flow.game.players.map((player) => player.score)).toEqual([20, 20])
+    flow = confirmTurn(flow)
+    expect(flow.phase).toBe('turn-complete')
+    if (flow.phase !== 'turn-complete') throw new Error('El turno debería estar resuelto.')
+    expect(flow.result).toMatchObject({ total: 36, targetId: 'player-2', outcome: { kind: 'attack', points: 6 } })
+    expect(flow.game.players.map((player) => player.score)).toEqual([20, 14])
+    expect(flow.game.turnCount).toBe(1)
+    expect(() => confirmTurn(flow)).toThrow()
+    expect(() => chooseAttack(flow, 'next')).toThrow()
+  })
+
+  it('resuelve el ataque al único objetivo en el quinto lanzamiento', () => {
+    let flow = startGame(createGame(['Ana', 'Luis'], 20, 'manual'))
+    for (let id = 0; id < 4; id++) {
+      flow = selectGameDice(rollGameDice(flow, () => 0.99), [id])
+    }
+    flow = rollGameDice(flow, () => 0.99)
+    expect(flow.phase).toBe('turn-complete')
+    if (flow.phase !== 'turn-complete') throw new Error('El turno debería estar resuelto.')
+    expect(flow.result).toMatchObject({ total: 36, targetId: 'player-2', outcome: { kind: 'attack', points: 6 } })
+    expect(flow.game.players.map((player) => player.score)).toEqual([20, 14])
+    expect(flow.game.turnCount).toBe(1)
   })
 
   it('declara ganador al último jugador si el jugador activo se elimina', () => {

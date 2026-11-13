@@ -6,7 +6,7 @@ Crear una aplicación web para jugar al juego de dados en navegadores de escrito
 
 ## Estado actual del proyecto
 
-El MVP está completo y validado. La Etapa 2 ha comenzado: T11–T21 y T23 están completadas; se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente, los resultados y el historial muestran avatares y clasificación final, la interfaz, contacto y preguntas frecuentes admiten inglés y español, el logo aparece en la aplicación y la pestaña, el último dado disponible se aparta automáticamente y la mesa señala a los líderes activos. El historial versionado conserva los avatares y migra los registros antiguos. La visualización de avatares en la mesa sigue pendiente. El plan y tareas originales del MVP se conservaron en [docs/MVP/PLANNING-MVP.md](./docs/MVP/PLANNING-MVP.md) y [docs/MVP/TASKS-MVP.md](./docs/MVP/TASKS-MVP.md).
+El MVP y la Etapa 2 están completos y validados. Se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente, la mesa, los resultados y el historial muestran avatares, y los resultados incluyen la clasificación final. La interfaz, contacto, preguntas frecuentes y «About» admiten inglés y español; la bienvenida incluye un video de ayuda local. El logo aparece en la aplicación y la pestaña, el último dado disponible se aparta automáticamente, la mesa señala a los líderes activos y los ataques al único rival se resuelven automáticamente. El historial versionado conserva los avatares y migra los registros antiguos. La validación incluyó 97 pruebas unitarias y de integración, 38 pruebas de navegador, lint, build y comprobación de recursos en producción. El plan y tareas originales del MVP se conservaron en [docs/MVP/PLANNING-MVP.md](./docs/MVP/PLANNING-MVP.md) y [docs/MVP/TASKS-MVP.md](./docs/MVP/TASKS-MVP.md).
 
 | Tarea | Estado |
 |---|---|
@@ -32,12 +32,13 @@ El MVP está completo y validado. La Etapa 2 ha comenzado: T11–T21 y T23 está
 | T20 — Crear la página de preguntas frecuentes | ✅ Completada |
 | T21 — Simplificar el cierre al quedar un dado | ✅ Completada |
 | T23 — Señalar con una corona a los líderes | ✅ Completada |
-| T24 — Atacar automáticamente al único objetivo disponible | ⚪ No asignada |
-| T25 — Mostrar en el tablero los avatares seleccionados | ⚪ No asignada |
-| T26 — Crear la página «About» y contar la historia del juego | ⚪ No asignada |
-| T22 — Validar e integrar la Etapa 2 | ⚪ No asignada |
+| T24 — Atacar automáticamente al único objetivo disponible | ✅ Completada |
+| T25 — Mostrar en el tablero los avatares seleccionados | ✅ Completada |
+| T26 — Crear la página «About» y contar la historia del juego | ✅ Completada |
+| T27 — Mostrar un video de cómo jugar | ✅ Completada |
+| T22 — Validar e integrar la Etapa 2 | ✅ Completada |
 
-El detalle y los criterios de aceptación están en [TASKS.md](./TASKS.md). Las tareas T01–T10 corresponden al MVP completado; T11–T26 componen la Etapa 2.
+El detalle y los criterios de aceptación están en [TASKS.md](./TASKS.md). Las tareas T01–T10 corresponden al MVP completado; T11–T27 componen la Etapa 2.
 
 ## Roles y responsabilidades
 
@@ -105,7 +106,7 @@ Ampliar la experiencia del MVP con avatares, participantes controlados por perso
 
 - Si al comenzar un lanzamiento solo queda un dado disponible, lanzar ese dado debe apartarlo automáticamente con el valor obtenido, sin requerir una selección manual.
 - Después de ese lanzamiento, ofrecer una única acción explícita y localizada para confirmar el cierre del turno, por ejemplo «Continuar con el siguiente jugador».
-- La confirmación continúa el flujo normal de resolución del turno. Si el resultado requiere elegir dirección de ataque, esa decisión sigue siendo obligatoria; no se omiten reglas ni resultados.
+- La confirmación continúa el flujo normal de resolución del turno. Si el ataque tiene varios objetivos posibles, elegir la dirección sigue siendo obligatorio; no se omiten reglas ni resultados.
 - Una IA confirma automáticamente; para una persona se muestra el resultado antes de avanzar al siguiente turno.
 - La mejora es de interfaz y no modifica las reglas de selección, suma, límite de lanzamientos ni resolución de ataques.
 
@@ -121,7 +122,7 @@ Ampliar la experiencia del MVP con avatares, participantes controlados por perso
 - El usuario puede cambiar el idioma y la elección se recuerda en el almacenamiento local de ese navegador.
 - La preferencia se valida y guarda por separado en un formato versionado; los valores inválidos vuelven a inglés sin modificar el historial. Los errores de lectura o escritura se muestran sin impedir jugar.
 - Toda la interfaz, las páginas nuevas y los mensajes accesibles deben estar disponibles en ambos idiomas.
-- La interfaz, la página de contacto y las preguntas frecuentes están traducidas; «About» se incorporará en ambos idiomas en T26.
+- La interfaz y las páginas de contacto, preguntas frecuentes y «About» están traducidas.
 - Los datos del historial y las reglas del juego son independientes del idioma elegido.
 
 ### Logo y páginas informativas
@@ -130,8 +131,9 @@ Ampliar la experiencia del MVP con avatares, participantes controlados por perso
 - El logo de 128 píxeles y el favicon PNG de 32 píxeles se derivan de esa imagen y se empaquetan localmente.
 - La página de contacto y sugerencias ofrece un enlace `mailto:` a `santiarrto@gmail.com`. No se envían datos mediante backend ni servicios externos. La navegación está disponible desde la bienvenida y se oculta durante la partida para no interrumpirla.
 - La página de preguntas frecuentes explica las reglas aprobadas en `README.md` y las funciones incluidas en el producto.
-- La página «About» explicará el juego y acreditará a Santiago Arredondo, con una anécdota sobre las partidas y apuestas compartidas con compañeros de trabajo durante los almuerzos. La mención de apuestas es histórica y no incorpora apuestas ni pagos a la aplicación.
-- Las páginas están disponibles en inglés y español y son accesibles desde la navegación de la aplicación; contacto y preguntas frecuentes ya están disponibles, y «About» corresponde a T26.
+- La página «About» explica el juego y acredita a Santiago Arredondo, con una anécdota sobre las partidas y apuestas compartidas con compañeros de trabajo durante los almuerzos. La mención de apuestas es histórica y no incorpora apuestas ni pagos a la aplicación.
+- Las páginas están disponibles en inglés y español y son accesibles desde la navegación de la aplicación.
+- En la bienvenida y configuración, un botón de ayuda con icono de pregunta reproduce el video local `src/assets/video/dice-brawl.mp4` en un diálogo accesible y adaptable, con controles y opción de cierre. No aparece durante la partida.
 
 ### Fuera de alcance
 
@@ -255,6 +257,8 @@ flowchart LR
   T12 --> T25
   T17 --> T26
   T19 --> T26
+  T09 --> T27
+  T17 --> T27
   T14 --> T22
   T15 --> T22
   T16 --> T22
@@ -267,6 +271,7 @@ flowchart LR
   T24 --> T22
   T25 --> T22
   T26 --> T22
+  T27 --> T22
 ```
 
 Lectura de dependencias:
@@ -279,7 +284,7 @@ Lectura de dependencias:
 - T10 valida el MVP completo y depende de las tareas anteriores enumeradas en `TASKS.md`.
 - T11 define los IDs y el valor predeterminado; T12 integra los avatares y el tipo de participante; T13 amplía la persistencia. T14 presenta avatares en resultados e historial, y T25 los muestra en el tablero.
 - T15 implementa las decisiones de IA sobre el flujo ya existente (T06) y la selección de tipo de participante (T12). T16 construye el ranking a partir del flujo de eliminación y lo persiste en el historial (T13).
-- T17 añade traducciones y preferencia local; T18 integra el logo suministrado por el dueño del producto. T19, T20 y T26 añaden páginas informativas; T26 reutiliza las traducciones y la navegación de T17 y T19. T21 mejora el cierre del turno cuando queda un dado y T23 señala a los líderes; ambas usan la mesa y accesibilidad existentes (T07 y T09). T24 adapta el flujo de ataques para resolver sin intervención cuando solo existe un objetivo. T25 conecta los avatares configurados con la lista de jugadores del tablero. T22 valida todas las funcionalidades en conjunto.
+- T17 añade traducciones y preferencia local; T18 integra el logo suministrado por el dueño del producto. T19, T20 y T26 añaden páginas informativas; T26 reutiliza las traducciones y la navegación de T17 y T19. T21 mejora el cierre del turno cuando queda un dado y T23 señala a los líderes; ambas usan la mesa y accesibilidad existentes (T07 y T09). T24 adapta el flujo de ataques para resolver sin intervención cuando solo existe un objetivo. T25 conecta los avatares configurados con la lista de jugadores del tablero. T27 incorpora el video de ayuda con accesibilidad y traducciones (T09 y T17). T22 valida todas las funcionalidades en conjunto.
 
 ## Criterio de entrega del MVP
 
@@ -287,4 +292,4 @@ El MVP está listo cuando las tareas T01–T10 cumplen sus criterios, las reglas
 
 ## Criterio de entrega de la Etapa 2
 
-La Etapa 2 estará lista cuando T11–T26 cumplan sus criterios: avatares y tipos de participante se conservan y muestran en la mesa, los resultados y el historial; las tres dificultades de IA siguen las reglas; la clasificación final se muestra y persiste; la mesa señala a los líderes; inglés es el idioma predeterminado y la elección se recuerda; el logo se usa también como favicon; contacto, FAQs y «About» funcionan en ambos idiomas; el cierre con un único dado requiere solo la confirmación final, sin selección manual; y un ataque contra el único objetivo posible se resuelve automáticamente. Los flujos deben pasar pruebas unitarias, de integración y navegador en escritorio y móvil.
+La Etapa 2 estará lista cuando T11–T27 cumplan sus criterios: avatares y tipos de participante se conservan y muestran en la mesa, los resultados y el historial; las tres dificultades de IA siguen las reglas; la clasificación final se muestra y persiste; la mesa señala a los líderes; inglés es el idioma predeterminado y la elección se recuerda; el logo se usa también como favicon; contacto, FAQs y «About» funcionan en ambos idiomas; el video de ayuda se reproduce en un diálogo accesible; el cierre con un único dado requiere solo la confirmación final, sin selección manual; y un ataque contra el único objetivo posible se resuelve automáticamente. Los flujos deben pasar pruebas unitarias, de integración y navegador en escritorio y móvil.

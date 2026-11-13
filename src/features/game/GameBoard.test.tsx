@@ -1,9 +1,10 @@
 import { act, fireEvent, render as renderTesting, screen, within } from '@testing-library/react'
-import { StrictMode, type ReactElement } from 'react'
+import { StrictMode, type ComponentProps, type ReactElement } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createGame } from '../../domain/game'
 import { HISTORY_KEY, loadHistory } from '../../persistence/history'
 import { LanguageProvider } from '../../i18n'
+import { PlayerAvatar } from '../../components/PlayerAvatar'
 import { GameBoard } from './GameBoard'
 
 function render(element: ReactElement) {
@@ -26,6 +27,39 @@ function keepAll() {
 }
 
 describe('mesa de juego', () => {
+  it('conserva los datos del jugador cuando falla su avatar y el predeterminado', () => {
+    render(<GameBoard game={createGame([
+      { name: 'Ana', avatarId: 'player7', kind: 'human' }, 'Luis',
+    ], 20, 'manual')} onReturn={vi.fn()} />)
+    const row = within(screen.getByRole('complementary', { name: 'Jugadores' })).getAllByRole('listitem')[0]
+    const image = row.querySelector('img')
+    if (!image) throw new Error('No se encontró el avatar.')
+    expect(image).toHaveAttribute('src', expect.stringContaining('/player7.jpg'))
+    expect(image).toHaveAttribute('alt', '')
+    fireEvent.error(image)
+    expect(image).toHaveAttribute('src', expect.stringContaining('/player1.jpg'))
+    expect(within(row).getByText(/se muestra el predeterminado/)).toBeVisible()
+    fireEvent.error(image)
+    expect(within(row).getByText('Avatar no disponible.')).toBeVisible()
+    expect(row.querySelector('img')).not.toBeInTheDocument()
+    expect(row).toHaveTextContent('Ana')
+    expect(row).toHaveTextContent('20 puntos')
+    expect(row).toHaveTextContent('Actual')
+    expect(row).toHaveTextContent('Líder')
+  })
+
+  it('muestra el avatar predeterminado con aviso si el identificador no se puede resolver', () => {
+    const props: ComponentProps<typeof PlayerAvatar> = { avatarId: 'player1' }
+    Reflect.set(props, 'avatarId', 'player21')
+    render(<PlayerAvatar {...props} />)
+    const image = document.querySelector('.player-avatar__image')
+    if (!image) throw new Error('No se encontró el avatar predeterminado.')
+    expect(image).toHaveAttribute('src', expect.stringContaining('/player1.jpg'))
+    expect(screen.getByText(/se muestra el predeterminado/)).toBeVisible()
+    fireEvent.error(image)
+    expect(screen.getByText('Avatar no disponible.')).toBeVisible()
+  })
+
   it('marca a todos los líderes activos y actualiza las coronas al cambiar marcadores y eliminar', () => {
     const random = vi.spyOn(Math, 'random').mockReturnValue(0.99)
     render(<GameBoard game={createGame(['Ana', 'Luis', 'Eva', 'Sol'], 10, 'manual')} onReturn={vi.fn()} />)
@@ -299,19 +333,36 @@ describe('mesa de juego', () => {
     expect(screen.queryByRole('button', { name: 'Siguiente turno' })).not.toBeInTheDocument()
   })
 
-  it('guarda el resultado cuando termina al confirmar un ataque', () => {
+  it('aplica ataques al único rival y guarda el resultado una sola vez', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.99)
-    render(<GameBoard game={createGame(['Ana', 'Luis'], 10, 'manual')} onReturn={vi.fn()} />)
+    render(<StrictMode><GameBoard game={createGame(['Ana', 'Luis'], 10, 'manual')} onReturn={vi.fn()} /></StrictMode>)
     for (let turn = 0; turn < 3; turn++) {
       fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
       keepAll()
-      fireEvent.click(screen.getByRole('radio', { name: /Siguiente:/ }))
-      fireEvent.click(screen.getByRole('button', { name: 'Confirmar ataque' }))
-      if (turn < 2) fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
+      expect(screen.queryByRole('button', { name: 'Confirmar ataque' })).not.toBeInTheDocument()
+      if (turn < 2) {
+        expect(screen.getByRole('button', { name: 'Siguiente turno' })).toHaveFocus()
+        fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
+      }
     }
     expect(screen.getByRole('status')).toHaveTextContent('Ganador: Ana')
     expect(screen.getByText(/Turnos jugados:/)).toHaveTextContent('3')
     expect(loadHistory()).toMatchObject([{ winnerId: 'player-1', turnCount: 3 }])
+    expect(loadHistory()).toHaveLength(1)
+  })
+
+  it('la IA ataca al único rival sin detenerse a elegir dirección', () => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    render(<GameBoard game={createGame([
+      { name: 'IA', avatarId: 'player1', kind: 'ai', difficulty: 'hard' }, 'Ana',
+    ], 10, 'manual')} onReturn={vi.fn()} />)
+    act(() => vi.advanceTimersByTime(650))
+    act(() => vi.advanceTimersByTime(650))
+    expect(screen.queryByRole('button', { name: 'Confirmar ataque' })).not.toBeInTheDocument()
+    expect(screen.getByText(/ataque descuenta 6 puntos a Ana/)).toBeVisible()
+    act(() => vi.advanceTimersByTime(1400))
+    expect(screen.getByText(/Juega:/)).toHaveTextContent('Ana')
   })
 
   it('guarda el resultado si la victoria ocurre en el quinto lanzamiento', () => {

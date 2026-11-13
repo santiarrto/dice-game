@@ -2,11 +2,13 @@
 
 Juego de supervivencia para navegadores, pensado para jugar en una misma pantalla y adaptarse a celulares y computadores.
 
-> ✅ **Estado del proyecto:** MVP validado. La Etapa 2 está en curso: se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente, los resultados y el historial muestran avatares y clasificación final, y la interfaz, la página de contacto y las preguntas frecuentes admiten inglés y español. El logo aparece en la aplicación y en la pestaña, el último dado disponible se aparta automáticamente y una corona identifica a los líderes durante la partida. Los avatares en el tablero durante la partida y la página «About» están pendientes.
+> ✅ **Estado del proyecto:** MVP y Etapa 2 validados. Se pueden configurar avatares y participantes humanos/IA, la IA juega automáticamente, la mesa, los resultados y el historial muestran avatares, y los resultados incluyen la clasificación final. La interfaz y las páginas de contacto, preguntas frecuentes y «About» admiten inglés y español; la bienvenida incluye un video de ayuda local. El logo aparece en la aplicación y en la pestaña, el último dado disponible se aparta automáticamente, una corona identifica a los líderes y el ataque al único rival activo se resuelve automáticamente.
 
 Cada participante IA tiene una dificultad: fácil elige acciones legales al azar; media busca acercarse a 30; y difícil considera los marcadores, la supervivencia y los objetivos de ataque. Las dos últimas usan una estimación del resultado suponiendo un lanzamiento futuro de los dados restantes, no una optimización exhaustiva de todos los lanzamientos posibles.
 
-La página de contacto incluye un enlace que abre un mensaje de correo dirigido a `santiarrto@gmail.com`; no se almacenan ni envían sugerencias mediante un backend. Las preguntas frecuentes explican las reglas y funciones principales. Ambas páginas son accesibles desde la bienvenida y la configuración se conserva al volver. Durante una partida la navegación se oculta para evitar abandonarla accidentalmente. El logo y el favicon usan versiones optimizadas de la imagen proporcionada en `src/assets/icon.jpg`. El alcance detallado está en [PLANNING.md](./PLANNING.md) y sus tareas en [TASKS.md](./TASKS.md).
+La página de contacto incluye un enlace que abre un mensaje de correo dirigido a `santiarrto@gmail.com`; no se almacenan ni envían sugerencias mediante un backend. Las preguntas frecuentes explican las reglas y funciones principales, y «About» presenta el juego y la historia de su creación. Las páginas son accesibles desde la bienvenida y la configuración se conserva al volver. Durante una partida la navegación se oculta para evitar abandonarla accidentalmente. El logo y el favicon usan versiones optimizadas de la imagen proporcionada en `src/assets/icon.jpg`. El alcance detallado está en [PLANNING.md](./PLANNING.md) y sus tareas en [TASKS.md](./TASKS.md).
+
+En la bienvenida, el botón «Cómo jugar» abre el video local con controles de reproducción. Se puede cerrar con el botón o con Escape; al cerrarlo, el video se pausa y la configuración se conserva. Si el navegador no puede reproducirlo, se muestra un aviso.
 
 ## 🚀 Requisitos
 
@@ -43,6 +45,8 @@ npx playwright install chromium # Instalar Chromium para pruebas de navegador (s
 npm run test:e2e            # Probar partidas completas en escritorio y móvil
 ```
 
+Las pruebas de navegador usan Chromium y cubren vistas de 320 y 1280 píxeles. Para comprobar los recursos del build, ejecuta `npm run build`, inicia `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort` en otra terminal y ejecuta `npm run test:e2e -- --grep "muestra el logo|reproduce y cierra el video"` sin `CI` configurado; Playwright reutiliza el servidor de vista previa. Detén la vista previa al terminar.
+
 ## 💾 Historial local
 
 La bienvenida muestra hasta **10 partidas terminadas** guardadas en el navegador, con su ganador y marcadores finales. Los datos no se sincronizan entre dispositivos y pueden borrarse al limpiar el almacenamiento del navegador. La partida en curso no se guarda.
@@ -54,6 +58,8 @@ Al finalizar una partida se muestra el ganador y el resumen, y se intenta guarda
 ## 🌐 Idioma
 
 La interfaz aparece inicialmente en inglés. El selector permite cambiar a español o volver a inglés en cualquier momento, incluso durante una partida. La preferencia se guarda en el navegador en un formato versionado; si no se puede leer o guardar, se muestra un aviso y se puede seguir jugando. Un valor inválido vuelve a inglés sin modificar el historial.
+
+Los avatares configurados se muestran junto a cada jugador en la mesa. Si una imagen no carga, se usa el avatar predeterminado y se informa; si tampoco está disponible, se muestra un indicador alternativo.
 
 ## 🏁 Objetivo
 
@@ -78,7 +84,7 @@ En su turno, cada jugador lanza los seis dados y puede hacer hasta **5 lanzamien
 
 Cada dado se cuenta una sola vez. Apartar un dado significa que ya no se vuelve a lanzar durante ese turno.
 
-Si solo queda un dado disponible, se aparta automáticamente al lanzarlo. Confirma el turno para resolver el resultado; si corresponde un ataque, todavía debes elegir su dirección. Después se muestra el resultado antes de continuar.
+Si solo queda un dado disponible, se aparta automáticamente al lanzarlo. Confirma el turno para resolver el resultado; si corresponde un ataque y hay varios objetivos posibles, todavía debes elegir su dirección. Después se muestra el resultado antes de continuar.
 
 ## ⚖️ Resultado del turno
 
@@ -87,6 +93,8 @@ Compara la suma de los dados con **30**:
 - 📉 **Menos de 30:** el jugador pierde la diferencia de su propio marcador.
 - 🤝 **Exactamente 30:** no cambia ningún marcador.
 - ⚔️ **Más de 30:** el excedente sobre 30 se usa para atacar. El jugador elige como objetivo a la persona activa más cercana que siga en la partida, en el sentido siguiente o anterior al orden de turnos. El objetivo pierde esa cantidad de puntos.
+
+Si solo hay un rival activo, ambas direcciones llevan al mismo objetivo y la aplicación resuelve el ataque automáticamente.
 
 Los puntos de vida no bajan de cero. Quien llega a cero queda eliminado y ya no toma turnos ni puede ser objetivo. Si la pérdida supera los puntos que le quedaban, el excedente se descarta. Después de una eliminación, la ronda continúa con el siguiente jugador activo en el orden establecido, saltando a quienes hayan sido eliminados.
 
@@ -170,8 +178,10 @@ dice-game/
     │   ├── logo-128.jpg  # Logo optimizado para la aplicación
     │   ├── favicon-32.png # Favicon optimizado
     │   ├── avatars.ts    # Catálogo tipado de imágenes de avatar
+    │   ├── video/        # Video local de ayuda
     │   └── player-icons/ # Imágenes locales de avatares
     ├── app/              # Composición de la aplicación y su prueba
+    ├── components/       # Componentes compartidos y video de ayuda
     ├── domain/           # Reglas y pruebas del juego
     ├── features/game/    # Mesa, controlador de partida y sus pruebas
     ├── features/history/ # Presentación del historial

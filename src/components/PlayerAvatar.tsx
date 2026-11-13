@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { avatarImage } from '../assets/avatars'
-import { DEFAULT_AVATAR_ID, type AvatarId } from '../domain/avatars'
+import { DEFAULT_AVATAR_ID, isAvatarId, type AvatarId } from '../domain/avatars'
 import { useLanguage } from '../i18n'
 
 interface PlayerAvatarProps {
@@ -10,8 +10,9 @@ interface PlayerAvatarProps {
 export function PlayerAvatar({ avatarId }: PlayerAvatarProps) {
   const { t } = useLanguage()
   const [failure, setFailure] = useState<{ source: string; fallbackFailed: boolean } | null>(null)
-  const source = avatarImage(avatarId)
   const fallback = avatarImage(DEFAULT_AVATAR_ID)
+  const invalidAvatar = !isAvatarId(avatarId)
+  const source = invalidAvatar ? fallback : avatarImage(avatarId)
   const sourceFailed = failure?.source === source
   const unavailable = sourceFailed && (source === fallback || failure.fallbackFailed)
 
@@ -27,7 +28,7 @@ export function PlayerAvatar({ avatarId }: PlayerAvatarProps) {
           onError={() => setFailure({ source, fallbackFailed: sourceFailed })}
         />
       )}
-      {sourceFailed && (
+      {(invalidAvatar || sourceFailed) && (
         <span className="player-avatar__notice">
           {unavailable ? t.avatarUnavailable : t.avatarFallback}
         </span>

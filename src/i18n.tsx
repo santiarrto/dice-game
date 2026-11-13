@@ -14,10 +14,18 @@ const en = {
   playing: 'Roll the dice and fight to survive.',
   navigation: 'Main navigation',
   home: 'Home',
+  howToPlay: 'How to play',
+  close: 'Close',
+  videoError: 'The video could not be played. Try the playback controls or try again later.',
   contact: 'Contact and suggestions',
   contactIntro: 'Have a question or suggestion about the game? We would love to hear from you.',
   contactHelp: 'This link opens your email app. Nothing is sent or saved by this website.',
   faq: 'Frequently asked questions',
+  about: 'About',
+  aboutGame: 'Survive is a dice game for 2 to 8 participants, people or AI. Roll six dice, compare your total with 30 and try to stay in the game. The last active player wins.',
+  aboutStoryHeading: 'From lunch breaks to the screen',
+  aboutStory: 'It started around the lunch table. Santiago Arredondo and his coworkers played dice during their breaks, placing bets and passing the time together. Later, Santiago developed this app to bring a little of those shared games to the screen.',
+  aboutNoBetting: 'Those bets are part of the story; this app does not include betting or payments.',
   faqItems: [
     {
       question: 'How many people can play and who goes first?',
@@ -41,7 +49,7 @@ const en = {
     },
     {
       question: 'Who can be attacked?',
-      answer: 'Choose the previous or next active player in turn order. Eliminated players are skipped when finding the nearest target.',
+      answer: 'Choose the previous or next active player in turn order. Eliminated players are skipped when finding the nearest target. If only one opponent remains, the attack is applied automatically.',
     },
     {
       question: 'How are players eliminated and ranked?',
@@ -180,10 +188,18 @@ const es: Messages = {
   playing: 'Lanza los dados y lucha por sobrevivir.',
   navigation: 'Navegación principal',
   home: 'Inicio',
+  howToPlay: 'Cómo jugar',
+  close: 'Cerrar',
+  videoError: 'No se pudo reproducir el video. Prueba los controles de reproducción o inténtalo más tarde.',
   contact: 'Contacto y sugerencias',
   contactIntro: '¿Tienes alguna pregunta o sugerencia sobre el juego? Nos encantará escucharte.',
   contactHelp: 'Este enlace abre tu aplicación de correo. Esta web no envía ni guarda mensajes.',
   faq: 'Preguntas frecuentes',
+  about: 'Acerca de',
+  aboutGame: 'Sobrevivir es un juego de dados para 2 a 8 participantes, personas o IA. Lanza seis dados, compara tu suma con 30 e intenta mantenerte en la partida. Gana la última persona activa.',
+  aboutStoryHeading: 'Del almuerzo a la pantalla',
+  aboutStory: 'Todo empezó alrededor de la mesa del almuerzo. Santiago Arredondo y sus compañeros de trabajo jugaban a los dados durante sus descansos, entre apuestas y buenos ratos compartidos. Después, Santiago desarrolló esta aplicación para llevar un poco de aquellas partidas a la pantalla.',
+  aboutNoBetting: 'Las apuestas son parte de la anécdota; esta aplicación no incluye apuestas ni pagos.',
   faqItems: [
     {
       question: '¿Cuántas personas pueden jugar y quién comienza?',
@@ -207,7 +223,7 @@ const es: Messages = {
     },
     {
       question: '¿A quién se puede atacar?',
-      answer: 'Elige al jugador activo anterior o siguiente en el orden de turnos. Para encontrar al objetivo más cercano se saltan los jugadores eliminados.',
+      answer: 'Elige al jugador activo anterior o siguiente en el orden de turnos. Para encontrar al objetivo más cercano se saltan los jugadores eliminados. Si solo queda un rival activo, el ataque se aplica automáticamente.',
     },
     {
       question: '¿Cómo se elimina y clasifica a los jugadores?',

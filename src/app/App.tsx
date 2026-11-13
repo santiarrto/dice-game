@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import logo from '../assets/logo-128.jpg'
+import { HelpVideo } from '../components/HelpVideo'
 import { createGame, type Game } from '../domain/game'
 import { GameBoard } from '../features/game/GameBoard'
 import { HistoryPanel } from '../features/history/HistoryPanel'
@@ -29,16 +30,17 @@ function readLanguage(): { language: Language; error: 'read' | null } {
 
 export function App() {
   const [game, setGame] = useState<Game | null>(null)
-  const [page, setPage] = useState<'home' | 'contact' | 'faq'>('home')
+  const [page, setPage] = useState<'home' | 'contact' | 'faq' | 'about'>('home')
   const infoHeading = useRef<HTMLHeadingElement>(null)
   const [preference, setPreference] = useState<{ language: Language; error: 'read' | 'write' | null }>(readLanguage)
   const { language, error } = preference
   const t = messages[language]
+  const pageTitle = page === 'home' ? null : t[page]
 
   useEffect(() => {
     document.documentElement.lang = language
-    document.title = page === 'home' ? t.title : `${page === 'contact' ? t.contact : t.faq} | ${t.title}`
-  }, [language, page, t.contact, t.faq, t.title])
+    document.title = pageTitle === null ? t.title : `${pageTitle} | ${t.title}`
+  }, [language, pageTitle, t.title])
 
   useEffect(() => {
     if (page !== 'home') infoHeading.current?.focus()
@@ -85,6 +87,9 @@ export function App() {
             <button type="button" aria-current={page === 'faq' ? 'page' : undefined} onClick={() => setPage('faq')}>
               {t.faq}
             </button>
+            <button type="button" aria-current={page === 'about' ? 'page' : undefined} onClick={() => setPage('about')}>
+              {t.about}
+            </button>
           </nav>
         )}
         {page === 'contact' && (
@@ -106,7 +111,17 @@ export function App() {
             ))}
           </section>
         )}
+        {page === 'about' && (
+          <section className="info-panel" aria-labelledby="about-heading">
+            <h2 id="about-heading" ref={infoHeading} tabIndex={-1}>{t.about}</h2>
+            <p>{t.aboutGame}</p>
+            <h3>{t.aboutStoryHeading}</h3>
+            <p>{t.aboutStory}</p>
+            <p>{t.aboutNoBetting}</p>
+          </section>
+        )}
         <div hidden={game !== null || page !== 'home'}>
+          {game === null && page === 'home' && <HelpVideo />}
           <SetupForm onStart={({ players, initialScore, order }) => {
             setGame(createGame(players, initialScore, order))
           }} />

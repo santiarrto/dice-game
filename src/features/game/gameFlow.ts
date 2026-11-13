@@ -87,6 +87,9 @@ function updateTurn(game: Game): GameFlow {
   const total = turnTotal(game.turn)
   const outcome = calculateOutcome(total)
   if (outcome.kind === 'attack') {
+    const next = findNeighbor(game.players, game.currentPlayerId, 'next')
+    const previous = findNeighbor(game.players, game.currentPlayerId, 'previous')
+    if (next.id === previous.id) return finishTurn(game, total, 'next')
     return { phase: 'choose-target', game, total, points: outcome.points }
   }
   return finishTurn(game, total)

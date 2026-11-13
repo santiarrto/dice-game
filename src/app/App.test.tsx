@@ -217,6 +217,34 @@ describe('App', () => {
     expect(screen.getByLabelText(/Player 1 name/)).toHaveValue('Ana')
   })
 
+  it('presenta la historia del juego en ambos idiomas y conserva la configuración', () => {
+    saveHistory(completedGame)
+    const stored = localStorage.getItem(HISTORY_KEY)
+    render(<App />)
+    fireEvent.change(screen.getByLabelText(/Nombre del jugador 1/), { target: { value: 'Ana' } })
+    fireEvent.change(screen.getByLabelText('Marcador por jugador'), { target: { value: '35' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Preguntas frecuentes' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Acerca de' }))
+    const about = screen.getByRole('region', { name: 'Acerca de' })
+    expect(within(about).getByRole('heading', { level: 2 })).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Acerca de' })).toHaveAttribute('aria-current', 'page')
+    expect(document.title).toBe('Acerca de | Juego de dados: sobrevivir')
+    expect(within(about).getByText(/2 a 8 participantes.*seis dados.*30.*última persona activa/)).toBeVisible()
+    expect(within(about).getByText(/Santiago Arredondo.*compañeros de trabajo.*apuestas.*Santiago desarrolló esta aplicación/)).toBeVisible()
+    expect(within(about).getByText(/no incluye apuestas ni pagos/)).toBeVisible()
+
+    fireEvent.change(screen.getByLabelText('Idioma'), { target: { value: 'en' } })
+    const englishAbout = screen.getByRole('region', { name: 'About' })
+    expect(document.title).toBe('About | Dice game: survive')
+    expect(within(englishAbout).getByText(/2 to 8 participants.*six dice.*30.*last active player wins/)).toBeVisible()
+    expect(within(englishAbout).getByText(/Santiago Arredondo.*coworkers.*bets.*Santiago developed this app/)).toBeVisible()
+    expect(within(englishAbout).getByText(/does not include betting or payments/)).toBeVisible()
+    expect(localStorage.getItem(HISTORY_KEY)).toBe(stored)
+    fireEvent.click(screen.getByRole('button', { name: 'Home' }))
+    expect(screen.getByLabelText(/Player 1 name/)).toHaveValue('Ana')
+    expect(screen.getByLabelText('Score per player')).toHaveValue(35)
+  })
+
   it('oculta la navegación durante una partida y la recupera al salir', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
@@ -224,6 +252,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Volver a configurar' }))
     expect(screen.getByRole('button', { name: 'Contacto y sugerencias' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Preguntas frecuentes' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Acerca de' })).toBeVisible()
   })
 
   it('prepara la partida con el orden manual y permite volver a configurar', () => {
@@ -266,6 +295,48 @@ describe('App', () => {
     const board = screen.getByRole('region', { name: 'Mesa de juego' })
     expect(within(board).getByText('La IA juega automáticamente.')).toBeVisible()
     expect(screen.getByText('IA (media)')).toBeVisible()
+  })
+
+  it('muestra en la mesa los avatares configurados tras reordenar y eliminar jugadores', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Cantidad de jugadores'), { target: { value: '3' } })
+    for (const [index, name] of ['Ana', 'Luis', 'Eva'].entries()) {
+      fireEvent.change(screen.getByLabelText(new RegExp(`Nombre del jugador ${index + 1}`)), { target: { value: name } })
+    }
+    fireEvent.click(screen.getByText('Avatar del jugador 1: 1'))
+    fireEvent.click(screen.getByRole('radio', { name: 'Avatar 7 del jugador 1' }))
+    fireEvent.click(screen.getByText('Avatar del jugador 2: 1'))
+    fireEvent.click(screen.getByRole('radio', { name: 'Avatar 8 del jugador 2' }))
+    fireEvent.click(screen.getByText('Avatar del jugador 3: 1'))
+    fireEvent.click(screen.getByRole('radio', { name: 'Avatar 7 del jugador 3' }))
+    fireEvent.change(screen.getByLabelText('Tipo de jugador 3'), { target: { value: 'ai' } })
+    fireEvent.click(screen.getByRole('radio', { name: /Elegir manualmente/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Subir Luis' }))
+    fireEvent.change(screen.getByLabelText('Marcador por jugador'), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar partida' }))
+
+    const scoreboard = screen.getByRole('complementary', { name: 'Jugadores' })
+    const rows = within(scoreboard).getAllByRole('listitem')
+    for (const [index, name, avatar] of [[0, 'Luis', 'player8'], [1, 'Ana', 'player7'], [2, 'Eva', 'player7']] as const) {
+      expect(rows[index]).toHaveTextContent(name)
+      expect(rows[index].querySelector('img')).toHaveAttribute('src', expect.stringContaining(`/${avatar}.jpg`))
+      expect(rows[index].querySelector('img')).toHaveAttribute('alt', '')
+      expect(rows[index]).toHaveTextContent('10 puntos')
+    }
+    expect(rows[0]).toHaveTextContent('Actual')
+    expect(rows[1]).toHaveTextContent('Siguiente')
+    expect(rows[2]).toHaveTextContent('IA (media)')
+    fireEvent.click(screen.getByRole('button', { name: 'Lanzar dados' }))
+    for (let die = 1; die <= 6; die++) fireEvent.click(screen.getByRole('button', { name: new RegExp(`^Dado ${die}:`) }))
+    fireEvent.click(screen.getByRole('button', { name: 'Apartar seleccionados' }))
+    expect(rows[0]).toHaveTextContent('Eliminado')
+    expect(rows[0]).toHaveTextContent('0 puntos')
+    expect(rows[0].querySelector('img')).toHaveAttribute('src', expect.stringContaining('/player8.jpg'))
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
+    expect(rows[0]).toHaveTextContent('Último en jugar')
+    expect(rows[1]).toHaveTextContent('Actual')
+    expect(rows[2]).toHaveTextContent('Siguiente')
   })
 
   it('muestra en la bienvenida un resultado persistido al volver a cargar', () => {
@@ -407,8 +478,8 @@ describe('App', () => {
     }
 
     rollAndKeepAll()
-    fireEvent.click(screen.getByRole('radio', { name: 'Siguiente: Luis' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar ataque' }))
+    expect(screen.getByText(/ataque descuenta 6 puntos a Luis/)).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Confirmar ataque' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Siguiente turno' }))
 
     vi.mocked(Math.random).mockReturnValue(0.8)
@@ -417,8 +488,6 @@ describe('App', () => {
 
     vi.mocked(Math.random).mockReturnValue(0.99)
     rollAndKeepAll()
-    fireEvent.click(screen.getByRole('radio', { name: 'Siguiente: Luis' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar ataque' }))
 
     expect(screen.getByRole('status')).toHaveTextContent('Ganador: Ana')
     expect(screen.getByText(/Luis queda eliminado/)).toBeInTheDocument()

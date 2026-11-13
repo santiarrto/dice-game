@@ -144,7 +144,7 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
   }
 
   useEffect(() => {
-    if (!isAiTurn && (flow.phase === 'confirm-turn'
+    if (!isAiTurn && ((previousPhase.current === 'playing' && flow.phase !== 'playing')
       || previousPhase.current === 'confirm-turn' || previousPhase.current === 'choose-target')) {
       const target = flow.phase === 'choose-target' ? attackInput.current : nextAction.current
       target?.focus()
@@ -354,6 +354,7 @@ export function GameBoard({ game, onReturn }: GameBoardProps) {
             >
               <div className="scoreboard__name">
                 <div className="scoreboard__player-name">
+                  <PlayerAvatar avatarId={player.avatarId} />
                   <strong>{player.name}</strong>
                   {player.score > 0 && player.score === highestScore && (
                     <span className="scoreboard__leader"><span aria-hidden="true">👑</span> <span>{t.leader}</span></span>
